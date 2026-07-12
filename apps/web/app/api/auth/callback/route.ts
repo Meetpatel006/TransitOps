@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("http://localhost:3001/login"));
   }
 
-  const response = NextResponse.redirect(new URL("/", req.nextUrl));
+  const response = NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   response.cookies.set("token", token, {
     httpOnly: false,
     secure: false,
