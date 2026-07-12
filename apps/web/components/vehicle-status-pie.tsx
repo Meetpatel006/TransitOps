@@ -6,13 +6,6 @@ import { Legend } from "@/components/dither-kit/legend"
 import { Tooltip } from "@/components/dither-kit/tooltip"
 import { cn } from "@/lib/utils"
 
-const DATA = [
-  { status: "Available", count: 75 },
-  { status: "On Trip", count: 35 },
-  { status: "In Shop", count: 15 },
-  { status: "Retired", count: 5 },
-] satisfies { status: string; count: number; [key: string]: unknown }[]
-
 const CONFIG = {
   Available: { label: "Available", color: "green" as const },
   "On Trip": { label: "On Trip", color: "blue" as const },
@@ -20,15 +13,25 @@ const CONFIG = {
   Retired: { label: "Retired", color: "grey" as const },
 }
 
+type PieDataItem = { status: string; count: number; [key: string]: unknown }
+
 interface VehicleStatusPieProps {
   className?: string
+  data?: PieDataItem[]
 }
 
-export default function VehicleStatusPie({ className }: VehicleStatusPieProps) {
+const DEFAULT_DATA: PieDataItem[] = [
+  { status: "Available", count: 75 },
+  { status: "On Trip", count: 35 },
+  { status: "In Shop", count: 15 },
+  { status: "Retired", count: 5 },
+]
+
+export default function VehicleStatusPie({ className, data = DEFAULT_DATA }: VehicleStatusPieProps) {
   return (
     <div className={cn("h-full", className)}>
       <PieChart
-        data={DATA}
+        data={data}
         config={CONFIG}
         dataKey="count"
         nameKey="status"
