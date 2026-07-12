@@ -36,9 +36,4 @@ export interface TopicItem {
 export interface SidebarData {
   user: User;
   navMain: NavItem[];
-  navCollapsible: {
-    favorites: FavoriteItem[];
-    teams: TeamItem[];
-    topics: TopicItem[];
-  };
 }

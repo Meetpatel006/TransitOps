@@ -1,19 +1,16 @@
 'use client';
 
 import {
-  IconAd2,
-  IconBellRinging,
-  IconCalendar,
-  IconCalendarStats,
-  IconListDetails,
-  IconNews,
-  IconNotebook,
-  IconProgressCheck,
-  IconSettingsCode,
+  IconCar,
+  IconChartBar,
+  IconGasStation,
+  IconRoute,
+  IconSettings,
+  IconTools,
+  IconTruckDelivery,
 } from '@tabler/icons-react';
-import { LayoutDashboard, Package } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
-import { NavCollapsible } from '@/components/sidebar/nav-collapsible';
 import { NavFooter } from '@/components/sidebar/nav-footer';
 import { NavHeader } from '@/components/sidebar/nav-header';
 import { NavMain } from '@/components/sidebar/nav-main';
@@ -27,101 +24,55 @@ const data: SidebarData = {
   },
   navMain: [
     {
-      id: 'overview',
-      title: 'Overview',
-      url: '#',
+      id: 'dashboard',
+      title: 'Dashboard',
+      url: '/dashboard',
       icon: LayoutDashboard,
       isActive: true,
     },
     {
-      id: 'tasks',
-      title: 'Tasks',
-      url: '#',
-      icon: IconListDetails,
+      id: 'fleet',
+      title: 'Fleet',
+      url: '/fleet',
+      icon: IconCar,
     },
     {
-      id: 'meetings',
-      title: 'Meetings',
-      url: '#',
-      icon: IconCalendarStats,
+      id: 'drivers',
+      title: 'Drivers',
+      url: '/drivers',
+      icon: IconTruckDelivery,
     },
     {
-      id: 'notes',
-      title: 'Notes',
-      url: '#',
-      icon: IconNotebook,
+      id: 'trips',
+      title: 'Trips',
+      url: '/trips',
+      icon: IconRoute,
     },
     {
-      id: 'calendar',
-      title: 'Calendar',
-      url: '#',
-      icon: IconCalendar,
+      id: 'maintenance',
+      title: 'Maintenance',
+      url: '/maintenance',
+      icon: IconTools,
     },
     {
-      id: 'completed',
-      title: 'Completed',
-      url: '#',
-      icon: IconProgressCheck,
+      id: 'fuel-expenses',
+      title: 'Fuel & Expenses',
+      url: '/fuel-expenses',
+      icon: IconGasStation,
     },
     {
-      id: 'notifications',
-      title: 'Notifications',
-      url: '#',
-      icon: IconBellRinging,
+      id: 'analytics',
+      title: 'Analytics',
+      url: '/analytics',
+      icon: IconChartBar,
+    },
+    {
+      id: 'settings',
+      title: 'Settings',
+      url: '/settings',
+      icon: IconSettings,
     },
   ],
-  navCollapsible: {
-    favorites: [
-      {
-        id: 'design',
-        title: 'Design',
-        href: '#',
-        color: 'bg-green-400 dark:bg-green-300',
-      },
-      {
-        id: 'development',
-        title: 'Development',
-        href: '#',
-        color: 'bg-blue-400 dark:bg-blue-300',
-      },
-      {
-        id: 'workshop',
-        title: 'Workshop',
-        href: '#',
-        color: 'bg-orange-400 dark:bg-orange-300',
-      },
-      {
-        id: 'personal',
-        title: 'Personal',
-        href: '#',
-        color: 'bg-red-400 dark:bg-red-300',
-      },
-    ],
-    teams: [
-      {
-        id: 'engineering',
-        title: 'Engineering',
-        icon: IconSettingsCode,
-      },
-      {
-        id: 'marketing',
-        title: 'Marketing',
-        icon: IconAd2,
-      },
-    ],
-    topics: [
-      {
-        id: 'product-updates',
-        title: 'Product Updates',
-        icon: Package,
-      },
-      {
-        id: 'company-news',
-        title: 'Company News',
-        icon: IconNews,
-      },
-    ],
-  },
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -130,11 +81,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <NavHeader data={data} />
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavCollapsible
-          favorites={data.navCollapsible.favorites}
-          teams={data.navCollapsible.teams}
-          topics={data.navCollapsible.topics}
-        />
       </SidebarContent>
       <NavFooter user={data.user} />
     </Sidebar>
