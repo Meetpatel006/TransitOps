@@ -56,3 +56,14 @@ Open separate terminals for each service.
 - `apps/web/.env.local` — main app env vars
 - `apps/marketing/.env.local` — landing page env vars
 - `apps/api/.env` — backend env vars
+
+## Test Credentials
+
+After seeding the database, you can use the following default credentials to log in and test different role-based views:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `frank.desai@transitops.com` | `pass5506` |
+| Fleet Manager | `krishna.gupta@transitops.com` | `pass2679` |
+| Safety Officer | `krishna.khan@transitops.com` | `pass1434` |
+| Driver | `driver.test@transitops.com` | `pass1234` |
