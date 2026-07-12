@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Sidebar from '@/components/sidebar';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import {
   IconUser,
   IconPalette,
 } from '@tabler/icons-react';
+import { useAuth } from '@/hooks/use-auth';
 
 const tabs = [
   { id: 'general', label: 'General', icon: IconSettings },
@@ -46,6 +47,7 @@ function SettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get('tab') || 'general';
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     depotName: 'Gandhinagar Depot GJW',
@@ -53,10 +55,16 @@ function SettingsContent() {
     distanceUnit: 'Kilometers',
   });
   const [profile, setProfile] = useState({
-    name: 'Ephraim',
-    email: 'ephraim@blocks.so',
+    name: user?.name || 'User',
+    email: user?.email || '',
   });
   const [theme, setTheme] = useState('system');
+
+  useEffect(() => {
+    if (user) {
+      setProfile({ name: user.name || 'User', email: user.email || '' });
+    }
+  }, [user]);
 
   const handleTabChange = (tabId: string) => {
     router.push(`/settings?tab=${tabId}`);
@@ -82,9 +90,7 @@ function SettingsContent() {
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                    isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
                   }`}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -99,30 +105,18 @@ function SettingsContent() {
               <div className="max-w-lg space-y-6">
                 <div>
                   <h2 className="text-base font-semibold mb-1">Depot Settings</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Basic configuration for your fleet depot.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Basic configuration for your fleet depot.</p>
                 </div>
-
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold tracking-wide">DEPOT NAME</Label>
-                    <Input
-                      value={form.depotName}
-                      onChange={(e) => setForm({ ...form, depotName: e.target.value })}
-                    />
+                    <Input value={form.depotName} onChange={(e) => setForm({ ...form, depotName: e.target.value })} />
                   </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold tracking-wide">CURRENCY</Label>
-                      <Select
-                        value={form.currency}
-                        onValueChange={(v) => v && setForm({ ...form, currency: v })}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
+                      <Select value={form.currency} onValueChange={(v) => v && setForm({ ...form, currency: v })}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="INR (₹)">INR (₹)</SelectItem>
                           <SelectItem value="USD ($)">USD ($)</SelectItem>
@@ -131,16 +125,10 @@ function SettingsContent() {
                         </SelectContent>
                       </Select>
                     </div>
-
                     <div className="space-y-2">
                       <Label className="text-xs font-semibold tracking-wide">DISTANCE UNIT</Label>
-                      <Select
-                        value={form.distanceUnit}
-                        onValueChange={(v) => v && setForm({ ...form, distanceUnit: v })}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
+                      <Select value={form.distanceUnit} onValueChange={(v) => v && setForm({ ...form, distanceUnit: v })}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Kilometers">Kilometers</SelectItem>
                           <SelectItem value="Miles">Miles</SelectItem>
@@ -149,10 +137,7 @@ function SettingsContent() {
                     </div>
                   </div>
                 </div>
-
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-semibold">
-                  Save changes
-                </Button>
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-semibold">Save changes</Button>
               </div>
             )}
 
@@ -160,11 +145,8 @@ function SettingsContent() {
               <div className="space-y-6">
                 <div>
                   <h2 className="text-base font-semibold mb-1">Roles & Access Control</h2>
-                  <p className="text-sm text-muted-foreground">
-                    View which permissions each role has across your fleet.
-                  </p>
+                  <p className="text-sm text-muted-foreground">View which permissions each role has across your fleet.</p>
                 </div>
-
                 <div className="border border-border rounded-lg overflow-hidden">
                   <Table className="w-full text-sm">
                     <TableHeader>
@@ -198,52 +180,37 @@ function SettingsContent() {
               <div className="max-w-lg space-y-6">
                 <div>
                   <h2 className="text-base font-semibold mb-1">Your Profile</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Manage your personal information and preferences.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Manage your personal information and preferences.</p>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <Avatar size="lg">
-                    <AvatarImage src="/avatar-01.png" alt={profile.name} />
+                    <AvatarImage src="" alt={profile.name} />
                     <AvatarFallback>{profile.name[0]}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="text-sm font-medium">{profile.name}</p>
                     <p className="text-xs text-muted-foreground">{profile.email}</p>
                   </div>
-                  <Button variant="outline" size="sm" className="ml-auto">
-                    Change avatar
-                  </Button>
+                  <Button variant="outline" size="sm" className="ml-auto">Change avatar</Button>
                 </div>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold tracking-wide">FULL NAME</Label>
-                    <Input
-                      value={profile.name}
-                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    />
+                    <Input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
                   </div>
-
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold tracking-wide">EMAIL</Label>
-                    <Input
-                      type="email"
-                      value={profile.email}
-                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                    />
+                    <Input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
                   </div>
-
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold tracking-wide">NEW PASSWORD</Label>
                     <Input type="password" placeholder="••••••••" />
                   </div>
                 </div>
 
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-semibold">
-                  Update profile
-                </Button>
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-semibold">Update profile</Button>
 
                 <div className="border-t border-border pt-6 space-y-4">
                   <div>
@@ -251,11 +218,8 @@ function SettingsContent() {
                       <IconPalette className="size-4" />
                       Appearance
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Control how the application looks and feels.
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Control how the application looks and feels.</p>
                   </div>
-
                   <div className="flex gap-3">
                     {[
                       { value: 'light', label: 'Light' },
@@ -266,9 +230,7 @@ function SettingsContent() {
                         key={opt.value}
                         onClick={() => setTheme(opt.value)}
                         className={`flex-1 py-6 rounded-lg border text-sm font-medium transition-colors ${
-                          theme === opt.value
-                            ? 'border-teal-600 bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-400'
-                            : 'border-border hover:bg-accent/50'
+                          theme === opt.value ? 'border-teal-600 bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-400' : 'border-border hover:bg-accent/50'
                         }`}
                       >
                         {opt.label}
