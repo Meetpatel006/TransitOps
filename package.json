@@ -1,6 +1,7 @@
 {
   "name": "transitops",
   "private": true,
+  "packageManager": "bun@1.3.14",
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "bun run --cwd apps/web dev",
