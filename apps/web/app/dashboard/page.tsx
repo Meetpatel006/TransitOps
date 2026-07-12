@@ -2,6 +2,9 @@
 import { StatusBadge } from '@/components/status-badge';
 
 import Sidebar from '@/components/sidebar';
+import VehicleStatusPie from '@/components/vehicle-status-pie';
+import FleetStatsCards from '@/components/fleet-stats-cards';
+import type { FleetStatItem } from '@/components/fleet-stats-cards';
 import {
   Table,
   TableBody,
@@ -18,14 +21,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const stats = [
-  { label: 'ACTIVE VEHICLES', value: '53', color: 'border-l-chart-1' },
-  { label: 'AVAILABLE VEHICLES', value: '42', color: 'border-l-chart-2' },
-  { label: 'VEHICLES IN MAINTENANCE', value: '05', color: 'border-l-chart-2' },
-  { label: 'ACTIVE TRIPS', value: '18', color: 'border-l-muted' },
-  { label: 'PENDING TRIPS', value: '09', color: 'border-l-muted' },
-  { label: 'DRIVERS ON DUTY', value: '26', color: 'border-l-muted' },
-  { label: 'FLEET UTILIZATION', value: '81%', color: 'border-l-primary' },
+const fleetOverview: FleetStatItem[] = [
+  { metric: 'Active Vehicles', current: '53', previous: '50', trend: 'up', difference: '+3' },
+  { metric: 'Available Vehicles', current: '42', previous: '38', trend: 'up', difference: '+4' },
+  { metric: 'In Maintenance', current: '05', previous: '07', trend: 'down', difference: '-2' },
+  { metric: 'Active Trips', current: '18', previous: '13', trend: 'up', difference: '+5' },
+];
+
+const operations: FleetStatItem[] = [
+  { metric: 'Pending Trips', current: '09', previous: '12', trend: 'down', difference: '-3' },
+  { metric: 'Drivers on Duty', current: '26', previous: '24', trend: 'up', difference: '+2' },
+  { metric: 'Fleet Utilization', current: '81%', previous: '77%', trend: 'up', difference: '+4.2%' },
 ];
 
 const recentTrips = [
@@ -35,17 +41,18 @@ const recentTrips = [
   { trip: 'TR004', vehicle: '—', driver: '—', status: 'Draft', statusColor: 'bg-muted', eta: 'Awaiting vehicle' },
 ];
 
-const vehicleStatus = [
-  { label: 'Available', percentage: 75, color: 'bg-primary' },
-  { label: 'On Trip', percentage: 35, color: 'bg-chart-1' },
-  { label: 'In Shop', percentage: 15, color: 'bg-chart-2' },
-  { label: 'Retired', percentage: 5, color: 'bg-chart-3' },
-];
-
 export default function DashboardPage() {
   return (
     <Sidebar>
       <div className="p-6 space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-xl font-bold">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Fleet operations overview
+          </p>
+        </div>
+
         {/* Filters */}
         <div className="flex items-center gap-4">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
@@ -75,72 +82,59 @@ export default function DashboardPage() {
           </Select>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-7 gap-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className={`bg-card border border-border rounded-lg p-4 border-l-4 ${stat.color}`}
-            >
-              <div className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                {stat.label}
-              </div>
-              <div className="text-3xl font-bold mt-2">{stat.value}</div>
+        {/* Top Section Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="col-span-1 lg:col-span-2 space-y-6">
+            {/* Fleet Overview */}
+            <div>
+              <h2 className="text-sm font-semibold tracking-wider mb-4">FLEET OVERVIEW</h2>
+              <FleetStatsCards items={fleetOverview} cols={4} />
             </div>
-          ))}
-        </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-3 gap-6">
-          {/* Recent Trips */}
-          <div className="col-span-2">
-            <h2 className="text-sm font-semibold tracking-wider mb-4">RECENT TRIPS</h2>
-            <div className="bg-card border border-border rounded-lg overflow-hidden">
-              <Table className="w-full text-sm">
-                <TableHeader>
-                  <TableRow className="border-b border-border text-muted-foreground text-xs tracking-wider">
-                    <TableHead className="text-left p-3 font-semibold">TRIP</TableHead>
-                    <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
-                    <TableHead className="text-left p-3 font-semibold">DRIVER</TableHead>
-                    <TableHead className="text-left p-3 font-semibold">STATUS</TableHead>
-                    <TableHead className="text-left p-3 font-semibold">ETA</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentTrips.map((trip) => (
-                    <TableRow key={trip.trip} className="border-b border-border last:border-0">
-                      <TableCell className="p-3 font-medium">{trip.trip}</TableCell>
-                      <TableCell className="p-3">{trip.vehicle}</TableCell>
-                      <TableCell className="p-3">{trip.driver}</TableCell>
-                      <TableCell className="p-3">
-                        <StatusBadge status={trip.status} />
-                      </TableCell>
-                      <TableCell className="p-3 text-muted-foreground">{trip.eta}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            {/* Operations */}
+            <div>
+              <h2 className="text-sm font-semibold tracking-wider mb-4">OPERATIONS</h2>
+              <FleetStatsCards items={operations} cols={3} />
             </div>
           </div>
 
-          {/* Vehicle Status */}
+          {/* Vehicle Status — dither-kit pie chart */}
           <div>
             <h2 className="text-sm font-semibold tracking-wider mb-4">VEHICLE STATUS</h2>
-            <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-              {vehicleStatus.map((status) => (
-                <div key={status.label}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>{status.label}</span>
-                  </div>
-                  <div className="h-3 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${status.color} rounded-full`}
-                      style={{ width: `${status.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+            <div className="bg-card border border-border rounded-lg p-2 flex flex-col justify-center h-[calc(100%-2rem)]">
+              <VehicleStatusPie />
             </div>
+          </div>
+        </div>
+
+        {/* Recent Trips */}
+        <div>
+          <h2 className="text-sm font-semibold tracking-wider mb-4">RECENT TRIPS</h2>
+          <div className="bg-card border border-border rounded-lg overflow-hidden">
+            <Table className="w-full text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-border text-muted-foreground text-xs tracking-wider">
+                  <TableHead className="text-left p-3 font-semibold">TRIP</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">DRIVER</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">STATUS</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">ETA</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentTrips.map((trip) => (
+                  <TableRow key={trip.trip} className="border-b border-border last:border-0">
+                    <TableCell className="p-3 font-medium">{trip.trip}</TableCell>
+                    <TableCell className="p-3">{trip.vehicle}</TableCell>
+                    <TableCell className="p-3">{trip.driver}</TableCell>
+                    <TableCell className="p-3">
+                      <StatusBadge status={trip.status} />
+                    </TableCell>
+                    <TableCell className="p-3 text-muted-foreground">{trip.eta}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
       </div>
