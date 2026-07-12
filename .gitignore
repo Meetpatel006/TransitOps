@@ -8,6 +8,7 @@ __pycache__/
 .venv/
 *.egg-info/
 data/
+apps/api/alembic/versions/
 
 .env.local
 .env*.local
