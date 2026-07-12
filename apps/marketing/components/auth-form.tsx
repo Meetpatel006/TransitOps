@@ -50,8 +50,8 @@ export default function AuthForm({ mode: initialMode = 'login' }: { mode?: 'logi
     setLoading(true);
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const body: Record<string, string> = { email, password };
-      if (mode === 'register') { body.name = name; body.role_name = role; }
+      const body: Record<string, string> = { email, password, role };
+      if (mode === 'register') body.name = name;
       const res = await fetch(`${API}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
