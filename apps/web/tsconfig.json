@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@transitops/shared": ["../../packages/shared/index.ts"]
     }
   },
   "include": [
