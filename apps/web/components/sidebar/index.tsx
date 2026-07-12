@@ -5,7 +5,7 @@ import {
 } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/sidebar/app-sidebar';
 
-export default function Sidebar() {
+export default function Sidebar01() {
   return (
     <SidebarProvider>
       <AppSidebar />

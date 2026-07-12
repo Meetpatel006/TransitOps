@@ -17,7 +17,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
 
           return (
             <SidebarMenuItem key={item.id}>
-              <SidebarMenuButton tooltip={item.title} isActive={item.isActive}>
+              <SidebarMenuButton tooltip={item.title}>
                 {Icon && <Icon className="mr-2 h-4 w-4" />}
                 <span>{item.title}</span>
               </SidebarMenuButton>
