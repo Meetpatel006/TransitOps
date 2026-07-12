@@ -12,8 +12,8 @@ export default function Home() {
         </nav>
       </header>
       <main className="flex flex-1 flex-col items-center justify-center px-8 py-8 text-center">
-        <h2 className="mb-2 text-5xl font-bold">Full-stack monorepo</h2>
-        <p className="mb-8 text-lg text-[#666]">Next.js + FastAPI. Bun + uv. Turborepo.</p>
+        <h2 className="mb-2 text-5xl font-bold">TransitOps</h2>
+        <p className="mb-8 text-lg text-[#666]">Transit fleet operations platform</p>
         <div className="flex gap-4">
           <Link href="/register" className="rounded-lg bg-[#111] px-6 py-3 font-medium text-white no-underline">Get started</Link>
           <Link href="/login" className="rounded-lg border border-[#ddd] bg-transparent px-6 py-3 font-medium text-[#111] no-underline">Sign in</Link>

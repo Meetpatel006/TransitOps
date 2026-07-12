@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const GoogleIcon = (props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) => (
   <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
@@ -35,8 +36,11 @@ export default function AuthForm({ mode: initialMode = 'login' }: { mode?: 'logi
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('Driver');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const ROLES = ['Admin', 'Fleet Manager', 'Driver', 'Safety Officer', 'Financial Analyst'];
 
   const toggleVisibility = () => setIsVisible((prev) => !prev);
 
@@ -47,7 +51,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: { mode?: 'logi
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
       const body: Record<string, string> = { email, password };
-      if (mode === 'register') body.name = name;
+      if (mode === 'register') { body.name = name; body.role_name = role; }
       const res = await fetch(`${API}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,7 +70,7 @@ export default function AuthForm({ mode: initialMode = 'login' }: { mode?: 'logi
   const otherMode = mode === 'login' ? 'register' : 'login';
 
   return (
-    <div className="flex min-h-dvh items-center justify-center">
+    <div className="flex min-h-dvh items-start justify-center pt-24">
       <div className="mx-auto w-full max-w-xs space-y-6">
         <div className="space-y-2 text-center">
           <Logo className="mx-auto h-16 w-16" />
@@ -136,6 +140,22 @@ export default function AuthForm({ mode: initialMode = 'login' }: { mode?: 'logi
                 >
                   {isVisible ? <EyeOff aria-hidden="true" size={16} /> : <Eye aria-hidden="true" size={16} />}
                 </button>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <div className="relative mt-2.5">
+                <Select value={role} onValueChange={(v) => v && setRole(v)}>
+                  <SelectTrigger id="role" className="w-full ps-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

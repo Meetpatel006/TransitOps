@@ -5,6 +5,7 @@ class RegisterInput(BaseModel):
     email: EmailStr
     password: str
     name: str | None = None
+    role_name: str = "Driver"
 
 
 class LoginInput(BaseModel):
