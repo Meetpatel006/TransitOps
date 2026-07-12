@@ -30,16 +30,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useAuth } from '@/hooks/use-auth';
 
-export function NavFooter({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+export function NavFooter() {
+  const { user, logout } = useAuth();
+
   return (
     <SidebarFooter className="p-4">
       <SidebarMenu>
@@ -51,8 +46,8 @@ export function NavFooter({
                   nativeButton={false}
                   render={<Avatar className="h-8 w-8 rounded-full" />}
                 >
-                  <AvatarImage alt={user.name} src={user.avatar} />
-                  <AvatarFallback className="rounded-full">CN</AvatarFallback>
+                  <AvatarImage alt={user?.name || ''} src="" />
+                  <AvatarFallback className="rounded-full">{user?.name?.[0] || 'U'}</AvatarFallback>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="m-2">
                   <DropdownMenuItem>
@@ -67,7 +62,7 @@ export function NavFooter({
                     />
                     Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => logout()}>
                     <LogOut
                       aria-hidden="true"
                       className="opacity-80"
@@ -94,10 +89,9 @@ export function NavFooter({
                     side="top"
                   >
                     <div className="space-y-1 text-xs">
-                      <p className="font-medium">User Information</p>
+                      <p className="font-medium">{user?.name || 'User'}</p>
                       <p className="text-muted-foreground">
-                        More details about the current user or section can be
-                        displayed here.
+                        {user?.email || ''}
                       </p>
                     </div>
                   </TooltipContent>
