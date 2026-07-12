@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from app.auth.routes import get_current_user, require_role
+from app.auth.permissions import Resource, require_permission
 from app.database import get_db
 from app.drivers.schemas import DriverCreate, DriverUpdate
 from app.models.fleet import Driver
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/drivers", tags=["drivers"])
 def list_drivers(
     status_filter: str | None = None,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.DRIVERS, "read")),
 ):
     stmt = select(Driver)
     if status_filter:
@@ -26,7 +26,7 @@ def list_drivers(
 def get_driver(
     driver_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.DRIVERS, "read")),
 ):
     driver = db.get(Driver, driver_id)
     if not driver:
@@ -38,7 +38,7 @@ def get_driver(
 def create_driver(
     body: DriverCreate,
     db: DBSession = Depends(get_db),
-    _=Depends(require_role("Admin", "Fleet Manager")),
+    _=Depends(require_permission(Resource.DRIVERS, "full")),
 ):
     existing = db.scalar(select(Driver).where(Driver.license_number == body.license_number))
     if existing:
@@ -55,7 +55,7 @@ def update_driver(
     driver_id: int,
     body: DriverUpdate,
     db: DBSession = Depends(get_db),
-    _=Depends(require_role("Admin", "Fleet Manager")),
+    _=Depends(require_permission(Resource.DRIVERS, "full")),
 ):
     driver = db.get(Driver, driver_id)
     if not driver:
@@ -75,7 +75,7 @@ def update_driver(
 def delete_driver(
     driver_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(require_role("Admin", "Fleet Manager")),
+    _=Depends(require_permission(Resource.DRIVERS, "full")),
 ):
     driver = db.get(Driver, driver_id)
     if not driver:

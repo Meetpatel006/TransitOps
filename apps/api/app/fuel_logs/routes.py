@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from app.auth.routes import get_current_user
+from app.auth.permissions import Resource, require_permission
 from app.database import get_db
 from app.fuel_logs.schemas import FuelLogCreate, FuelLogUpdate
 from app.models.fleet import FuelLog, Vehicle
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/fuel-logs", tags=["fuel-logs"])
 def list_fuel_logs(
     vehicle_id: int | None = None,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "read")),
 ):
     stmt = select(FuelLog)
     if vehicle_id:
@@ -26,7 +26,7 @@ def list_fuel_logs(
 def get_fuel_log(
     log_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "read")),
 ):
     log = db.get(FuelLog, log_id)
     if not log:
@@ -38,7 +38,7 @@ def get_fuel_log(
 def create_fuel_log(
     body: FuelLogCreate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "full")),
 ):
     if not db.get(Vehicle, body.vehicle_id):
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -54,7 +54,7 @@ def update_fuel_log(
     log_id: int,
     body: FuelLogUpdate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "full")),
 ):
     log = db.get(FuelLog, log_id)
     if not log:
@@ -70,7 +70,7 @@ def update_fuel_log(
 def delete_fuel_log(
     log_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "full")),
 ):
     log = db.get(FuelLog, log_id)
     if not log:

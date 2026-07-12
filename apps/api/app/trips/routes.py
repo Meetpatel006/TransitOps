@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from app.auth.routes import get_current_user
+from app.auth.permissions import Resource, require_permission
 from app.database import get_db
 from app.models.fleet import Driver, Trip, Vehicle
 from app.trips.schemas import TripComplete, TripCreate, TripUpdate
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/trips", tags=["trips"])
 def list_trips(
     status_filter: str | None = None,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.TRIPS, "read")),
 ):
     stmt = select(Trip)
     if status_filter:
@@ -28,7 +28,7 @@ def list_trips(
 def get_trip(
     trip_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.TRIPS, "read")),
 ):
     trip = db.get(Trip, trip_id)
     if not trip:
@@ -40,7 +40,7 @@ def get_trip(
 def create_trip(
     body: TripCreate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.TRIPS, "full")),
 ):
     vehicle = db.get(Vehicle, body.vehicle_id)
     if not vehicle:
@@ -62,7 +62,7 @@ def update_trip(
     trip_id: int,
     body: TripUpdate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.TRIPS, "full")),
 ):
     trip = db.get(Trip, trip_id)
     if not trip:
@@ -80,7 +80,7 @@ def update_trip(
 def dispatch_trip(
     trip_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.TRIPS, "full")),
 ):
     trip = db.get(Trip, trip_id)
     if not trip:
@@ -115,7 +115,7 @@ def complete_trip(
     trip_id: int,
     body: TripComplete,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.TRIPS, "full")),
 ):
     trip = db.get(Trip, trip_id)
     if not trip:
@@ -140,7 +140,7 @@ def complete_trip(
 def cancel_trip(
     trip_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.TRIPS, "full")),
 ):
     trip = db.get(Trip, trip_id)
     if not trip:

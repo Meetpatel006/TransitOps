@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.analytics import router as analytics_router
 from app.auth import router as auth_router
 from app.drivers import router as drivers_router
 from app.expenses import router as expenses_router
@@ -20,6 +21,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(analytics_router)
 app.include_router(vehicles_router)
 app.include_router(drivers_router)
 app.include_router(trips_router)

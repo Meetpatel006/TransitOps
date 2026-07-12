@@ -9,7 +9,7 @@ from app.models.auth import Role, User
 from app.models.fleet import Driver, Expense, FuelLog, MaintenanceLog, Trip, Vehicle
 from app.auth.service import hash_password
 
-ROLES = ["Admin", "Fleet Manager", "Driver", "Safety Officer", "Financial Analyst"]
+ROLES = ["Admin", "Fleet Manager", "Dispatcher", "Driver", "Safety Officer", "Financial Analyst"]
 
 USERS = [
     {"email": "admin@transitops.com", "name": "Alice Admin", "role": "Admin", "password": "admin123"},
@@ -20,6 +20,7 @@ USERS = [
     {"email": "safety@transitops.com", "name": "Sam Safety", "role": "Safety Officer", "password": "safety123"},
     {"email": "finance@transitops.com", "name": "Finn Finance", "role": "Financial Analyst", "password": "finance123"},
     {"email": "manager2@transitops.com", "name": "Grace Logistics", "role": "Fleet Manager", "password": "fleet123"},
+    {"email": "dispatch@transitops.com", "name": "Dee Dispatcher", "role": "Dispatcher", "password": "dispatch123"},
 ]
 
 VEHICLES = [

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from app.auth.routes import get_current_user, require_role
+from app.auth.permissions import Resource, require_permission
 from app.database import get_db
 from app.models.fleet import Vehicle
 from app.vehicles.schemas import VehicleCreate, VehicleOut, VehicleUpdate
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/vehicles", tags=["vehicles"])
 def list_vehicles(
     status_filter: str | None = None,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FLEET, "read")),
 ):
     stmt = select(Vehicle)
     if status_filter:
@@ -26,7 +26,7 @@ def list_vehicles(
 def get_vehicle(
     vehicle_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FLEET, "read")),
 ):
     vehicle = db.get(Vehicle, vehicle_id)
     if not vehicle:
@@ -38,7 +38,7 @@ def get_vehicle(
 def create_vehicle(
     body: VehicleCreate,
     db: DBSession = Depends(get_db),
-    _=Depends(require_role("Admin", "Fleet Manager")),
+    _=Depends(require_permission(Resource.FLEET, "full")),
 ):
     existing = db.scalar(select(Vehicle).where(Vehicle.registration_number == body.registration_number))
     if existing:
@@ -55,7 +55,7 @@ def update_vehicle(
     vehicle_id: int,
     body: VehicleUpdate,
     db: DBSession = Depends(get_db),
-    _=Depends(require_role("Admin", "Fleet Manager")),
+    _=Depends(require_permission(Resource.FLEET, "full")),
 ):
     vehicle = db.get(Vehicle, vehicle_id)
     if not vehicle:
@@ -75,7 +75,7 @@ def update_vehicle(
 def delete_vehicle(
     vehicle_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(require_role("Admin", "Fleet Manager")),
+    _=Depends(require_permission(Resource.FLEET, "full")),
 ):
     vehicle = db.get(Vehicle, vehicle_id)
     if not vehicle:

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from app.auth.routes import get_current_user
+from app.auth.permissions import Resource, require_permission
 from app.database import get_db
 from app.models.fleet import MaintenanceLog, Vehicle
 from app.maintenance.schemas import MaintenanceCreate, MaintenanceUpdate
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/maintenance", tags=["maintenance"])
 def list_maintenance(
     vehicle_id: int | None = None,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FLEET, "read")),
 ):
     stmt = select(MaintenanceLog)
     if vehicle_id:
@@ -28,7 +28,7 @@ def list_maintenance(
 def get_maintenance(
     log_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FLEET, "read")),
 ):
     log = db.get(MaintenanceLog, log_id)
     if not log:
@@ -40,7 +40,7 @@ def get_maintenance(
 def create_maintenance(
     body: MaintenanceCreate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FLEET, "full")),
 ):
     vehicle = db.get(Vehicle, body.vehicle_id)
     if not vehicle:
@@ -58,7 +58,7 @@ def update_maintenance(
     log_id: int,
     body: MaintenanceUpdate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FLEET, "full")),
 ):
     log = db.get(MaintenanceLog, log_id)
     if not log:
@@ -79,7 +79,7 @@ def update_maintenance(
 def delete_maintenance(
     log_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FLEET, "full")),
 ):
     log = db.get(MaintenanceLog, log_id)
     if not log:

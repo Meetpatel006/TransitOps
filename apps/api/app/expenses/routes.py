@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 
-from app.auth.routes import get_current_user
+from app.auth.permissions import Resource, require_permission
 from app.database import get_db
 from app.expenses.schemas import ExpenseCreate, ExpenseUpdate
 from app.models.fleet import Expense, Vehicle
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/expenses", tags=["expenses"])
 def list_expenses(
     vehicle_id: int | None = None,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "read")),
 ):
     stmt = select(Expense)
     if vehicle_id:
@@ -26,7 +26,7 @@ def list_expenses(
 def get_expense(
     expense_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "read")),
 ):
     expense = db.get(Expense, expense_id)
     if not expense:
@@ -38,7 +38,7 @@ def get_expense(
 def create_expense(
     body: ExpenseCreate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "full")),
 ):
     if not db.get(Vehicle, body.vehicle_id):
         raise HTTPException(status_code=404, detail="Vehicle not found")
@@ -54,7 +54,7 @@ def update_expense(
     expense_id: int,
     body: ExpenseUpdate,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "full")),
 ):
     expense = db.get(Expense, expense_id)
     if not expense:
@@ -70,7 +70,7 @@ def update_expense(
 def delete_expense(
     expense_id: int,
     db: DBSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_permission(Resource.FUEL_EXP, "full")),
 ):
     expense = db.get(Expense, expense_id)
     if not expense:
