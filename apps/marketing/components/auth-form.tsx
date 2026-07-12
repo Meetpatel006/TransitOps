@@ -59,7 +59,8 @@ export default function AuthForm({ mode: initialMode = 'login' }: { mode?: 'logi
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ?? 'Something went wrong');
-      window.location.href = `http://localhost:3000/api/auth/callback?token=${data.token}`;
+      const webAppUrl = process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3000';
+      window.location.href = `${webAppUrl}/api/auth/callback?token=${data.token}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {

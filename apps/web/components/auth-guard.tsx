@@ -14,7 +14,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!loading && !AUTH_PATHS.includes(pathname)) {
       const token = document.cookie.match(new RegExp(`(^| )token=([^;]+)`));
       if (!token) {
-        window.location.href = 'http://localhost:3001/login';
+        const marketingUrl = process.env.NEXT_PUBLIC_MARKETING_URL || 'http://localhost:3001';
+        window.location.href = `${marketingUrl}/login`;
       }
     }
   }, [pathname, loading]);

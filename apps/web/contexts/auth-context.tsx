@@ -66,7 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try { await authService.logout(); } catch {}
     deleteCookie('token');
     setUser(null);
-    window.location.href = 'http://localhost:3001/login';
+    const marketingUrl = process.env.NEXT_PUBLIC_MARKETING_URL || 'http://localhost:3001';
+    window.location.href = `${marketingUrl}/login`;
   }, []);
 
   return (
