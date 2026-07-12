@@ -8,6 +8,9 @@ import {
   IconSettings,
   IconTools,
   IconTruckDelivery,
+  IconUser,
+  IconUsers,
+  IconPalette,
 } from '@tabler/icons-react';
 import { LayoutDashboard } from 'lucide-react';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
@@ -69,8 +72,12 @@ const data: SidebarData = {
     {
       id: 'settings',
       title: 'Settings',
-      url: '/settings',
       icon: IconSettings,
+      children: [
+        { id: 'settings-general', title: 'General', icon: IconSettings, url: '/settings?tab=general' },
+        { id: 'settings-roles', title: 'Roles & Access', icon: IconUsers, url: '/settings?tab=roles' },
+        { id: 'settings-profile', title: 'Profile', icon: IconUser, url: '/settings?tab=profile' },
+      ],
     },
   ],
 };
