@@ -1,18 +1,10 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/status-badge';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
-interface Driver {
-  id: number;
-  name: string;
-  license_number: string;
-  license_category: 'LMV' | 'HMV';
-  license_expiry: string;
-  contact: string;
-  safety_score: number;
-  status: 'Available' | 'On Trip' | 'Off Duty' | 'Suspended';
-}
+import { driversService } from '@/services/drivers';
+import type { Driver } from '@transitops/shared';
 import {
   Table,
   TableBody,
@@ -28,14 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
-
-const initialDrivers: Driver[] = [
-  { id: 1, name: 'Alex', license_number: 'DL-88213', license_category: 'LMV', license_expiry: '2028-12-01', contact: '98765xxxxx', safety_score: 96, status: 'Available' },
-  { id: 2, name: 'John', license_number: 'DL-44120', license_category: 'HMV', license_expiry: '2025-03-01', contact: '98220xxxxx', safety_score: 91, status: 'Suspended' },
-  { id: 3, name: 'Priya', license_number: 'DL-77031', license_category: 'LMV', license_expiry: '2027-08-01', contact: '99110xxxxx', safety_score: 99, status: 'On Trip' },
-  { id: 4, name: 'Suresh', license_number: 'DL-90045', license_category: 'HMV', license_expiry: '2027-01-01', contact: '97440xxxxx', safety_score: 88, status: 'Off Duty' },
-];
 
 function getSafetyColor(score: number) {
   if (score >= 90) return 'text-green-600 dark:text-green-400';
@@ -47,16 +31,21 @@ function isLicenseExpired(expiry: string) {
   return new Date(expiry) < new Date();
 }
 
-const emptyForm: { name: string; license_number: string; license_category: 'LMV' | 'HMV'; license_expiry: string; contact: string; safety_score: string } = { name: '', license_number: '', license_category: 'LMV', license_expiry: '', contact: '', safety_score: '90' };
+const emptyForm = { name: '', license_number: '', license_category: 'LMV', license_expiry_date: '', contact_number: '', safety_score: '90' };
 
 export default function DriversPage() {
-  const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+  const fetchDrivers = () => driversService.list().then(setDrivers).catch(console.error).finally(() => setLoading(false));
+
+  useEffect(() => { fetchDrivers(); }, []);
 
   const filtered = drivers.filter((d) => {
     if (statusFilter !== 'All' && d.status !== statusFilter) return false;
@@ -80,52 +69,51 @@ export default function DriversPage() {
       name: d.name,
       license_number: d.license_number,
       license_category: d.license_category,
-      license_expiry: d.license_expiry,
-      contact: d.contact,
-      safety_score: String(d.safety_score),
+      license_expiry_date: d.license_expiry_date,
+      contact_number: d.contact_number,
+      safety_score: String(d.safety_score ?? 90),
     });
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name || !form.license_number) return;
-    if (editingId !== null) {
-      setDrivers(drivers.map(d => d.id === editingId ? {
-        ...d,
-        name: form.name,
-        license_number: form.license_number,
-        license_category: form.license_category,
-        license_expiry: form.license_expiry,
-        contact: form.contact,
-        safety_score: Number(form.safety_score) || 90,
-      } : d));
-    } else {
-      const nextId = Math.max(0, ...drivers.map(d => d.id)) + 1;
-      setDrivers([...drivers, {
-        id: nextId,
-        name: form.name,
-        license_number: form.license_number,
-        license_category: form.license_category,
-        license_expiry: form.license_expiry,
-        contact: form.contact,
-        safety_score: Number(form.safety_score) || 90,
-        status: 'Available',
-      }]);
+    const payload = {
+      name: form.name,
+      license_number: form.license_number,
+      license_category: form.license_category,
+      license_expiry_date: form.license_expiry_date,
+      contact_number: form.contact_number,
+      safety_score: Number(form.safety_score) || 90,
+    };
+    try {
+      if (editingId !== null) {
+        await driversService.update(editingId, payload);
+      } else {
+        await driversService.create(payload);
+      }
+      await fetchDrivers();
+      setForm(emptyForm);
+      setEditingId(null);
+      setShowForm(false);
+    } catch (e) {
+      console.error(e);
     }
-    setForm(emptyForm);
-    setEditingId(null);
-    setShowForm(false);
   };
 
-  const handleDelete = (id: number) => {
-    setDrivers(drivers.filter(d => d.id !== id));
+  const handleDelete = async (id: number) => {
+    try {
+      await driversService.remove(id);
+      await fetchDrivers();
+    } catch {}
     setDeleteConfirmId(null);
   };
+
+  if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
     <Sidebar>
       <div className="p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">Drivers</h1>
@@ -138,7 +126,6 @@ export default function DriversPage() {
           </Button>
         </div>
 
-        {/* Stat Cards */}
         <div className="grid grid-cols-4 gap-4">
           <div className="border border-border rounded-lg p-4">
             <p className="text-xs font-bold tracking-wider text-muted-foreground">TOTAL DRIVERS</p>
@@ -162,7 +149,6 @@ export default function DriversPage() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="flex items-center gap-4">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'All')}>
@@ -186,7 +172,6 @@ export default function DriversPage() {
           />
         </div>
 
-        {/* Add/Edit Form */}
         {showForm && (
           <div className="border border-border rounded-lg p-4 bg-secondary/30">
             <h2 className="text-sm font-bold tracking-wider mb-4">{editingId !== null ? 'EDIT DRIVER' : 'ADD DRIVER'}</h2>
@@ -201,7 +186,7 @@ export default function DriversPage() {
               </div>
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">CATEGORY</label>
-                <Select value={form.license_category} onValueChange={(val) => setForm({ ...form, license_category: val as 'LMV' | 'HMV' })}>
+                <Select value={form.license_category} onValueChange={(val) => setForm({ ...form, license_category: val ?? '' })}>
                   <SelectTrigger className="bg-transparent border-border h-[38px] text-sm">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -213,11 +198,11 @@ export default function DriversPage() {
               </div>
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">EXPIRY DATE</label>
-                <DatePicker value={form.license_expiry} onChange={(val) => setForm({ ...form, license_expiry: val })} placeholder="Expiry date" className="bg-transparent border-border h-[38px]" />
+                <input type="date" value={form.license_expiry_date} onChange={(e) => setForm({ ...form, license_expiry_date: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">CONTACT</label>
-                <input placeholder="Phone number" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                <input placeholder="Phone number" value={form.contact_number} onChange={(e) => setForm({ ...form, contact_number: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">SAFETY SCORE</label>
@@ -235,7 +220,6 @@ export default function DriversPage() {
           </div>
         )}
 
-        {/* Table */}
         <div className="border border-border rounded-lg overflow-hidden">
           <Table className="w-full text-sm">
             <TableHeader>
@@ -252,18 +236,18 @@ export default function DriversPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((d) => {
-                const expired = isLicenseExpired(d.license_expiry);
+                const expired = isLicenseExpired(d.license_expiry_date);
                 return (
                   <TableRow key={d.id} className="border-b border-border last:border-0">
                     <TableCell className="p-3 font-medium">{d.name}</TableCell>
                     <TableCell className="p-3 font-mono text-xs">{d.license_number}</TableCell>
                     <TableCell className="p-3">{d.license_category}</TableCell>
                     <TableCell className={`p-3 ${expired ? 'text-destructive font-bold' : ''}`}>
-                      {d.license_expiry}{expired ? ' EXPIRED' : ''}
+                      {d.license_expiry_date}{expired ? ' EXPIRED' : ''}
                     </TableCell>
-                    <TableCell className="p-3">{d.contact}</TableCell>
+                    <TableCell className="p-3">{d.contact_number}</TableCell>
                     <TableCell className="p-3">
-                      <span className={`font-bold ${getSafetyColor(d.safety_score)}`}>{d.safety_score}%</span>
+                      <span className={`font-bold ${getSafetyColor(d.safety_score ?? 0)}`}>{d.safety_score ?? 0}%</span>
                     </TableCell>
                     <TableCell className="p-3">
                       <StatusBadge status={d.status} />
@@ -289,7 +273,6 @@ export default function DriversPage() {
           </Table>
         </div>
 
-        {/* Rule note */}
         <p className="text-xs text-chart-4 italic">
           Rule: Expired license or Suspended status = blocked from trip assignment
         </p>

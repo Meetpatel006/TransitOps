@@ -1,18 +1,10 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/status-badge';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
-interface Vehicle {
-  id: number;
-  registration_number: string;
-  name_model: string;
-  type: 'Van' | 'Truck' | 'Mini';
-  capacity_kg: number;
-  odometer: number;
-  acquisition_cost: number;
-  status: 'Available' | 'On Trip' | 'In Shop' | 'Retired';
-}
+import { vehiclesService } from '@/services/vehicles';
+import type { Vehicle } from '@transitops/shared';
 import {
   Table,
   TableBody,
@@ -29,13 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const initialVehicles: Vehicle[] = [
-  { id: 1, registration_number: 'GJ01AB4521', name_model: 'VAN-05', type: 'Van', capacity_kg: 500, odometer: 74000, acquisition_cost: 620000, status: 'Available' },
-  { id: 2, registration_number: 'GJ01AB9981', name_model: 'TRUCK-12', type: 'Truck', capacity_kg: 5000, odometer: 182000, acquisition_cost: 2450000, status: 'On Trip' },
-  { id: 3, registration_number: 'GJ01AB1120', name_model: 'MINI-08', type: 'Mini', capacity_kg: 1000, odometer: 66000, acquisition_cost: 410000, status: 'In Shop' },
-  { id: 4, registration_number: 'GJ01AB0008', name_model: 'VAN-09', type: 'Van', capacity_kg: 750, odometer: 241900, acquisition_cost: 590000, status: 'Retired' },
-];
-
 function formatCost(n: number) {
   return '₹' + n.toLocaleString('en-IN');
 }
@@ -44,10 +29,11 @@ function formatOdometer(n: number) {
   return n.toLocaleString('en-IN') + ' km';
 }
 
-const emptyForm: { registration_number: string; name_model: string; type: 'Van' | 'Truck' | 'Mini'; capacity_kg: string; odometer: string; acquisition_cost: string } = { registration_number: '', name_model: '', type: 'Van', capacity_kg: '', odometer: '', acquisition_cost: '' };
+const emptyForm = { registration_number: '', name_model: '', type: 'Van' as 'Van' | 'Truck' | 'Mini', maximum_load_capacity: '', odometer: '', acquisition_cost: '' };
 
 export default function FleetPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(initialVehicles);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
@@ -56,6 +42,10 @@ export default function FleetPage() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+  const fetchVehicles = () => vehiclesService.list().then(setVehicles).catch(console.error).finally(() => setLoading(false));
+
+  useEffect(() => { fetchVehicles(); }, []);
 
   const filtered = vehicles.filter((v) => {
     if (typeFilter !== 'All' && v.type !== typeFilter) return false;
@@ -80,8 +70,8 @@ export default function FleetPage() {
     setForm({
       registration_number: v.registration_number,
       name_model: v.name_model,
-      type: v.type,
-      capacity_kg: String(v.capacity_kg),
+      type: v.type as 'Van' | 'Truck' | 'Mini',
+      maximum_load_capacity: String(v.maximum_load_capacity),
       odometer: String(v.odometer),
       acquisition_cost: String(v.acquisition_cost),
     });
@@ -89,54 +79,48 @@ export default function FleetPage() {
     setShowForm(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setFormError('');
     if (!form.registration_number || !form.name_model) {
       setFormError('Registration No. and Name are required');
       return;
     }
-    const isDuplicate = vehicles.some(v => v.registration_number === form.registration_number && v.id !== editingId);
-    if (isDuplicate) {
-      setFormError('Registration No. must be unique');
-      return;
+    const payload = {
+      registration_number: form.registration_number,
+      name_model: form.name_model,
+      type: form.type,
+      maximum_load_capacity: Number(form.maximum_load_capacity) || 0,
+      odometer: Number(form.odometer) || 0,
+      acquisition_cost: Number(form.acquisition_cost) || 0,
+    };
+    try {
+      if (editingId !== null) {
+        await vehiclesService.update(editingId, payload);
+      } else {
+        await vehiclesService.create(payload);
+      }
+      await fetchVehicles();
+      setForm(emptyForm);
+      setEditingId(null);
+      setShowForm(false);
+    } catch (e: unknown) {
+      setFormError(e instanceof Error ? e.message : 'Save failed');
     }
-    if (editingId !== null) {
-      setVehicles(vehicles.map(v => v.id === editingId ? {
-        ...v,
-        registration_number: form.registration_number,
-        name_model: form.name_model,
-        type: form.type,
-        capacity_kg: Number(form.capacity_kg) || 0,
-        odometer: Number(form.odometer) || 0,
-        acquisition_cost: Number(form.acquisition_cost) || 0,
-      } : v));
-    } else {
-      const nextId = Math.max(0, ...vehicles.map(v => v.id)) + 1;
-      setVehicles([...vehicles, {
-        id: nextId,
-        registration_number: form.registration_number,
-        name_model: form.name_model,
-        type: form.type,
-        capacity_kg: Number(form.capacity_kg) || 0,
-        odometer: Number(form.odometer) || 0,
-        acquisition_cost: Number(form.acquisition_cost) || 0,
-        status: 'Available',
-      }]);
-    }
-    setForm(emptyForm);
-    setEditingId(null);
-    setShowForm(false);
   };
 
-  const handleDelete = (id: number) => {
-    setVehicles(vehicles.filter(v => v.id !== id));
+  const handleDelete = async (id: number) => {
+    try {
+      await vehiclesService.remove(id);
+      await fetchVehicles();
+    } catch {}
     setDeleteConfirmId(null);
   };
+
+  if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
     <Sidebar>
       <div className="p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">Fleet</h1>
@@ -149,7 +133,6 @@ export default function FleetPage() {
           </Button>
         </div>
 
-        {/* Stat Cards */}
         <div className="grid grid-cols-4 gap-4">
           <div className="border border-border rounded-lg p-4">
             <p className="text-xs font-bold tracking-wider text-muted-foreground">TOTAL VEHICLES</p>
@@ -173,7 +156,6 @@ export default function FleetPage() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="flex items-center gap-4">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
           <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v ?? 'All')}>
@@ -208,7 +190,6 @@ export default function FleetPage() {
           />
         </div>
 
-        {/* Add/Edit Form */}
         {showForm && (
           <div className="border border-border rounded-lg p-4 bg-secondary/30">
             <h2 className="text-sm font-bold tracking-wider mb-4">{editingId !== null ? 'EDIT VEHICLE' : 'ADD VEHICLE'}</h2>
@@ -237,7 +218,7 @@ export default function FleetPage() {
               </div>
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">CAPACITY (KG)</label>
-                <input type="number" placeholder="500" value={form.capacity_kg} onChange={(e) => setForm({ ...form, capacity_kg: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                <input type="number" placeholder="500" value={form.maximum_load_capacity} onChange={(e) => setForm({ ...form, maximum_load_capacity: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm" />
               </div>
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">ODOMETER</label>
@@ -259,7 +240,6 @@ export default function FleetPage() {
           </div>
         )}
 
-        {/* Table */}
         <div className="border border-border rounded-lg overflow-hidden">
           <Table className="w-full text-sm">
             <TableHeader>
@@ -280,7 +260,7 @@ export default function FleetPage() {
                   <TableCell className="p-3 font-mono font-medium text-xs">{v.registration_number}</TableCell>
                   <TableCell className="p-3">{v.name_model}</TableCell>
                   <TableCell className="p-3">{v.type}</TableCell>
-                  <TableCell className="p-3 text-right">{v.capacity_kg.toLocaleString('en-IN')} kg</TableCell>
+                  <TableCell className="p-3 text-right">{v.maximum_load_capacity.toLocaleString('en-IN')} kg</TableCell>
                   <TableCell className="p-3 text-right">{formatOdometer(v.odometer)}</TableCell>
                   <TableCell className="p-3 text-right">{formatCost(v.acquisition_cost)}</TableCell>
                   <TableCell className="p-3">
@@ -306,7 +286,6 @@ export default function FleetPage() {
           </Table>
         </div>
 
-        {/* Rule note */}
         <p className="text-xs text-chart-4 italic">
           Rule: Registration No. must be unique · Retired/In Shop vehicles are hidden from Trip Dispatcher
         </p>
