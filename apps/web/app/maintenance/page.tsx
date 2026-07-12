@@ -1,85 +1,71 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/status-badge';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
+import { maintenanceService } from '@/services/maintenance';
+import { vehiclesService } from '@/services/vehicles';
+import type { MaintenanceLog, Vehicle } from '@transitops/shared';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
 
-interface MaintenanceRecord {
-  id: number;
-  vehicle: string;
-  service: string;
-  cost: number;
-  date: string;
-  status: string;
-}
-
-const vehicles = ['VAN-05', 'TRUCK-12', 'MINI-08', 'VAN-09'];
 const serviceTypes = ['Oil Change', 'Engine Repair', 'Tyre Replace', 'Brake Service', 'Battery Replace', 'AC Service', 'General Service', 'Clutch Repair'];
-
-const initialRecords: MaintenanceRecord[] = [
-  { id: 1, vehicle: 'VAN-05', service: 'Oil Change', cost: 2800, date: '05 Jul 2026', status: 'Completed' },
-  { id: 2, vehicle: 'TRUCK-12', service: 'Engine Repair', cost: 18000, date: '06 Jul 2026', status: 'Completed' },
-  { id: 3, vehicle: 'MINI-08', service: 'Tyre Replace', cost: 6200, date: '06 Jul 2026', status: 'In Progress' },
-  { id: 4, vehicle: 'VAN-05', service: 'Brake Service', cost: 1800, date: '08 Jul 2026', status: 'Completed' },
-  { id: 5, vehicle: 'TRUCK-12', service: 'AC Service', cost: 3500, date: '09 Jul 2026', status: 'In Progress' },
-  { id: 6, vehicle: 'VAN-09', service: 'General Service', cost: 4200, date: '10 Jul 2026', status: 'Completed' },
-];
 
 function formatCurrency(n: number) {
   return n.toLocaleString('en-IN');
 }
 
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
 export default function MaintenancePage() {
-  const [records, setRecords] = useState(initialRecords);
+  const [records, setRecords] = useState<MaintenanceLog[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ vehicle: '', serviceType: '', cost: '', date: '' });
+  const [form, setForm] = useState({ vehicle_id: '', serviceType: '', cost: '' });
   const [vehicleFilter, setVehicleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
 
-  // Summary calculations
+  const fetchAll = () => Promise.all([maintenanceService.list(), vehiclesService.list()])
+    .then(([r, v]) => { setRecords(r); setVehicles(v); })
+    .catch(console.error)
+    .finally(() => setLoading(false));
+
+  useEffect(() => { fetchAll(); }, []);
+
+  const vehicleMap = Object.fromEntries(vehicles.map(v => [v.id, v.name_model]));
+
   const totalCost = records.reduce((sum, r) => sum + r.cost, 0);
-  const inProgressCount = records.filter(r => r.status === 'In Progress').length;
-  const completedCount = records.filter(r => r.status === 'Completed').length;
+  const inProgressCount = records.filter(r => r.status === 'Open').length;
+  const completedCount = records.filter(r => r.status === 'Closed').length;
   const avgCost = records.length > 0 ? totalCost / records.length : 0;
 
-  // Filtered records
   const filtered = records.filter(r => {
-    if (vehicleFilter !== 'All' && r.vehicle !== vehicleFilter) return false;
-    if (statusFilter !== 'All' && r.status !== statusFilter) return false;
+    if (vehicleFilter !== 'All' && vehicleMap[r.vehicle_id] !== vehicleFilter) return false;
+    const displayStatus = r.status === 'Open' ? 'In Progress' : 'Completed';
+    if (statusFilter !== 'All' && displayStatus !== statusFilter) return false;
     return true;
   });
 
-  // Per-vehicle breakdown
   const vehicleBreakdown = vehicles.map(v => {
-    const vRecords = records.filter(r => r.vehicle === v);
+    const vRecords = records.filter(r => r.vehicle_id === v.id);
     return {
-      vehicle: v,
+      vehicle: v.name_model,
       totalCost: vRecords.reduce((s, r) => s + r.cost, 0),
       count: vRecords.length,
-      inProgress: vRecords.filter(r => r.status === 'In Progress').length,
-      completed: vRecords.filter(r => r.status === 'Completed').length,
+      inProgress: vRecords.filter(r => r.status === 'Open').length,
+      completed: vRecords.filter(r => r.status === 'Closed').length,
     };
   }).filter(v => v.count > 0).sort((a, b) => b.totalCost - a.totalCost);
 
-  // Per-service breakdown
   const serviceBreakdown = serviceTypes.map(s => {
-    const sRecords = records.filter(r => r.service === s);
+    const sRecords = records.filter(r => r.title === s);
     return {
       service: s,
       totalCost: sRecords.reduce((sum, r) => sum + r.cost, 0),
@@ -87,44 +73,39 @@ export default function MaintenancePage() {
     };
   }).filter(s => s.count > 0).sort((a, b) => b.totalCost - a.totalCost);
 
-  const nextId = Math.max(0, ...records.map(r => r.id)) + 1;
-
-  const handleSave = () => {
-    if (!form.vehicle || !form.serviceType) return;
-    setRecords([{
-      id: nextId,
-      vehicle: form.vehicle,
-      service: form.serviceType,
-      cost: Number(form.cost) || 0,
-      date: form.date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      status: 'In Progress',
-    }, ...records]);
-    setForm({ vehicle: '', serviceType: '', cost: '', date: '' });
-    setShowForm(false);
+  const handleSave = async () => {
+    if (!form.vehicle_id || !form.serviceType) return;
+    try {
+      await maintenanceService.create({
+        vehicle_id: Number(form.vehicle_id),
+        title: form.serviceType,
+        cost: Number(form.cost) || 0,
+      });
+      await fetchAll();
+      setForm({ vehicle_id: '', serviceType: '', cost: '' });
+      setShowForm(false);
+    } catch {}
   };
 
-  const handleComplete = (id: number) => {
-    setRecords(records.map(r => r.id === id ? { ...r, status: 'Completed' } : r));
+  const handleComplete = async (id: number) => {
+    try { await maintenanceService.update(id, { status: 'Closed' }); await fetchAll(); } catch {}
   };
+
+  if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
     <Sidebar>
       <div className="p-6 space-y-8">
-
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold">Maintenance</h1>
-            <p className="text-sm text-muted-foreground">
-              {records.length} records · {inProgressCount} in progress
-            </p>
+            <p className="text-sm text-muted-foreground">{records.length} records · {inProgressCount} in progress</p>
           </div>
           <Button onClick={() => setShowForm(!showForm)} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
             {showForm ? 'Close' : '+ Log Service'}
           </Button>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-4 gap-4">
           <div className="border border-border rounded-lg p-4">
             <p className="text-xs font-bold tracking-wider text-muted-foreground">TOTAL SPEND</p>
@@ -148,7 +129,6 @@ export default function MaintenancePage() {
           </div>
         </div>
 
-        {/* Service Log */}
         <div>
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-sm font-semibold tracking-wider">SERVICE LOG</h2>
@@ -158,7 +138,7 @@ export default function MaintenancePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">Vehicle: All</SelectItem>
-                {vehicles.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                {vehicles.map(v => <SelectItem key={v.id} value={v.name_model}>{v.name_model}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'All')}>
@@ -173,17 +153,16 @@ export default function MaintenancePage() {
             </Select>
           </div>
 
-          {/* Inline Form */}
           {showForm && (
             <div className="border border-border rounded-lg p-4 mb-4 bg-secondary/30">
               <h3 className="text-sm font-bold tracking-wider mb-3">LOG SERVICE RECORD</h3>
               <div className="grid grid-cols-4 gap-3">
-                <Select value={form.vehicle} onValueChange={(val) => setForm({ ...form, vehicle: val ?? '' })}>
+                <Select value={form.vehicle_id} onValueChange={(val) => setForm({ ...form, vehicle_id: val ?? '' })}>
                   <SelectTrigger className="bg-transparent border-border h-[38px] text-sm">
                     <SelectValue placeholder="Vehicle" />
                   </SelectTrigger>
                   <SelectContent>
-                    {vehicles.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                    {vehicles.map(v => <SelectItem key={v.id} value={String(v.id)}>{v.name_model}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={form.serviceType} onValueChange={(val) => setForm({ ...form, serviceType: val ?? '' })}>
@@ -195,15 +174,10 @@ export default function MaintenancePage() {
                   </SelectContent>
                 </Select>
                 <input type="number" placeholder="Cost (₹)" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-                <DatePicker value={form.date} onChange={(val) => setForm({ ...form, date: val })} placeholder="Date" className="bg-transparent border-border h-[38px]" />
               </div>
               <div className="flex gap-3 mt-3">
-                <Button onClick={handleSave} disabled={!form.vehicle || !form.serviceType} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">
-                  Save
-                </Button>
-                <Button onClick={() => setShowForm(false)} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">
-                  Cancel
-                </Button>
+                <Button onClick={handleSave} disabled={!form.vehicle_id || !form.serviceType} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">Save</Button>
+                <Button onClick={() => setShowForm(false)} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">Cancel</Button>
               </div>
             </div>
           )}
@@ -220,30 +194,30 @@ export default function MaintenancePage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((log) => (
-                  <TableRow key={log.id} className="border-b border-border last:border-0">
-                    <TableCell className="p-3 font-medium">{log.vehicle}</TableCell>
-                    <TableCell className="p-3">{log.service}</TableCell>
-                    <TableCell className="p-3 text-muted-foreground">{log.date}</TableCell>
-                    <TableCell className="p-3 text-right font-medium">₹{formatCurrency(log.cost)}</TableCell>
-                    <TableCell className="p-3">
-                      <div className="flex items-center gap-2">
-                        <StatusBadge status={log.status} />
-                        {log.status === 'In Progress' && (
-                          <Button onClick={() => handleComplete(log.id)} className="text-xs bg-teal-600 hover:bg-teal-700 text-white px-2 py-1 rounded">
-                            Close
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map((log) => {
+                  const displayStatus = log.status === 'Open' ? 'In Progress' : 'Completed';
+                  return (
+                    <TableRow key={log.id} className="border-b border-border last:border-0">
+                      <TableCell className="p-3 font-medium">{vehicleMap[log.vehicle_id] || `Vehicle #${log.vehicle_id}`}</TableCell>
+                      <TableCell className="p-3">{log.title}</TableCell>
+                      <TableCell className="p-3 text-muted-foreground">{formatDate(log.start_date)}</TableCell>
+                      <TableCell className="p-3 text-right font-medium">₹{formatCurrency(log.cost)}</TableCell>
+                      <TableCell className="p-3">
+                        <div className="flex items-center gap-2">
+                          <StatusBadge status={displayStatus} />
+                          {log.status === 'Open' && (
+                            <Button onClick={() => handleComplete(log.id)} className="text-xs bg-teal-600 hover:bg-teal-700 text-white px-2 py-1 rounded">Close</Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         </div>
 
-        {/* Per-Vehicle Breakdown */}
         {vehicleBreakdown.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold tracking-wider mb-4">PER-VEHICLE BREAKDOWN</h2>
@@ -274,7 +248,6 @@ export default function MaintenancePage() {
           </div>
         )}
 
-        {/* Per-Service Breakdown */}
         {serviceBreakdown.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold tracking-wider mb-4">PER-SERVICE BREAKDOWN</h2>
@@ -302,7 +275,6 @@ export default function MaintenancePage() {
             </div>
           </div>
         )}
-
       </div>
     </Sidebar>
   );
