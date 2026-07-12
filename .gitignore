@@ -1,0 +1,19 @@
+node_modules/
+.next/
+dist/
+.turbo/
+
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+data/
+
+.env.local
+.env*.local
+
+*.log
+.DS_Store
+
+#bun lock files
+bun.lock
