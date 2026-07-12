@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session as DBSession
 from app.auth.schemas import AuthOut, LoginInput, RegisterInput, UserOut
 from app.auth.service import check_password, hash_password
 from app.database import get_db
-from app.models.auth import Session, User
+from app.models.auth import Role, Session, User
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -17,10 +17,14 @@ def register(body: RegisterInput, db: DBSession = Depends(get_db)):
     existing = db.scalar(select(User).where(User.email == body.email))
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
+    driver_role = db.scalar(select(Role).where(Role.name == "Driver"))
+    if not driver_role:
+        raise HTTPException(status_code=500, detail="Default role not found")
     user = User(
         email=body.email,
         name=body.name,
         hashed_password=hash_password(body.password),
+        role_id=driver_role.id,
     )
     db.add(user)
     db.commit()
@@ -28,7 +32,10 @@ def register(body: RegisterInput, db: DBSession = Depends(get_db)):
     session = Session(user_id=user.id, token=uuid4().hex)
     db.add(session)
     db.commit()
-    return AuthOut(token=session.token, user=UserOut(id=user.id, email=user.email, name=user.name))
+    return AuthOut(
+        token=session.token,
+        user=UserOut(id=user.id, email=user.email, name=user.name, role_name=user.role.name),
+    )
 
 
 @router.post("/login")
@@ -39,7 +46,10 @@ def login(body: LoginInput, db: DBSession = Depends(get_db)):
     session = Session(user_id=user.id, token=uuid4().hex)
     db.add(session)
     db.commit()
-    return AuthOut(token=session.token, user=UserOut(id=user.id, email=user.email, name=user.name))
+    return AuthOut(
+        token=session.token,
+        user=UserOut(id=user.id, email=user.email, name=user.name, role_name=user.role.name),
+    )
 
 
 def get_current_user(
@@ -55,9 +65,20 @@ def get_current_user(
     return session.user
 
 
+def require_role(*roles: str):
+    def _check(user: User = Depends(get_current_user)):
+        if user.role.name not in roles:
+            raise HTTPException(
+                status_code=403, detail="Insufficient permissions"
+            )
+        return user
+
+    return _check
+
+
 @router.get("/me")
 def me(user: User = Depends(get_current_user)):
-    return UserOut(id=user.id, email=user.email, name=user.name)
+    return UserOut(id=user.id, email=user.email, name=user.name, role_name=user.role.name)
 
 
 @router.post("/logout", status_code=204)

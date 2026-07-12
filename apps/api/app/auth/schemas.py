@@ -16,6 +16,7 @@ class UserOut(BaseModel):
     id: int
     email: str
     name: str | None = None
+    role_name: str | None = None
 
 
 class AuthOut(BaseModel):
