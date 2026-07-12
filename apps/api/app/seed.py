@@ -182,6 +182,13 @@ def gen_expenses(n: int, vehicle_ids: list[int], now: datetime) -> list[dict]:
 
 
 def seed():
+    from app.database import engine
+    from app.models.auth import Base
+    # Also import all other bases or just the main Base that tracks all models
+    from app.database import Base
+    # Create all tables in case they don't exist (important for ephemeral SQLite on Render)
+    Base.metadata.create_all(bind=engine)
+    
     db = SessionLocal()
     try:
         # ponytail: clear child tables first to avoid FK violations, then parents
