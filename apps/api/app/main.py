@@ -33,3 +33,19 @@ app.include_router(expenses_router)
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+@app.post("/api/seed")
+async def seed_database(secret: str):
+    import os
+    from fastapi import HTTPException
+    
+    expected_secret = os.environ.get("SEED_SECRET", "transitops-seed")
+    if secret != expected_secret:
+        raise HTTPException(status_code=403, detail="Invalid secret")
+    
+    from app.seed import seed
+    try:
+        seed()
+        return {"status": "Database seeded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
