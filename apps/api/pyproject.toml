@@ -1,0 +1,14 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "FastAPI backend for TransitOps"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.18.5",
+    "bcrypt>=5.0.0",
+    "fastapi>=0.139.0",
+    "pydantic[email]>=2.13.4",
+    "sqlalchemy>=2.0.51",
+    "uvicorn>=0.51.0",
+]
