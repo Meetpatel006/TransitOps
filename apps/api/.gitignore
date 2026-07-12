@@ -15,3 +15,6 @@ data/
 
 # Alembic pycache
 alembic/versions/__pycache__/
+
+# Tests
+tests/
