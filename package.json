@@ -12,6 +12,8 @@
     "marketing:lint": "bun run --cwd apps/marketing lint"
   },
   "devDependencies": {
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.8",
     "turbo": "^2"
   }
 }
