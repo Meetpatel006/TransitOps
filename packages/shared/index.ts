@@ -5,6 +5,8 @@ export interface User {
   role_name: string | null
 }
 
+export * from './rbac';
+
 export interface ApiResponse<T = unknown> {
   data: T
   error?: string
