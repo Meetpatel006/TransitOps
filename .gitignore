@@ -18,3 +18,5 @@ apps/api/alembic/versions/
 
 #bun lock files
 bun.lock
+.agents/skills/
+skills-lock.json
