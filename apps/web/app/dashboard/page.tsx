@@ -1,29 +1,45 @@
 'use client';
+import { StatusBadge } from '@/components/status-badge';
 
 import Sidebar from '@/components/sidebar';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const stats = [
-  { label: 'ACTIVE VEHICLES', value: '53', color: 'border-l-blue-500' },
-  { label: 'AVAILABLE VEHICLES', value: '42', color: 'border-l-orange-500' },
-  { label: 'VEHICLES IN MAINTENANCE', value: '05', color: 'border-l-orange-500' },
-  { label: 'ACTIVE TRIPS', value: '18', color: 'border-l-gray-500' },
-  { label: 'PENDING TRIPS', value: '09', color: 'border-l-gray-500' },
-  { label: 'DRIVERS ON DUTY', value: '26', color: 'border-l-gray-500' },
-  { label: 'FLEET UTILIZATION', value: '81%', color: 'border-l-green-500' },
+  { label: 'ACTIVE VEHICLES', value: '53', color: 'border-l-chart-1' },
+  { label: 'AVAILABLE VEHICLES', value: '42', color: 'border-l-chart-2' },
+  { label: 'VEHICLES IN MAINTENANCE', value: '05', color: 'border-l-chart-2' },
+  { label: 'ACTIVE TRIPS', value: '18', color: 'border-l-muted' },
+  { label: 'PENDING TRIPS', value: '09', color: 'border-l-muted' },
+  { label: 'DRIVERS ON DUTY', value: '26', color: 'border-l-muted' },
+  { label: 'FLEET UTILIZATION', value: '81%', color: 'border-l-primary' },
 ];
 
 const recentTrips = [
-  { trip: 'TR001', vehicle: 'VAN-05', driver: 'Alex', status: 'On Trip', statusColor: 'bg-orange-500', eta: '45 min' },
-  { trip: 'TR002', vehicle: 'TRK-12', driver: 'John', status: 'Completed', statusColor: 'bg-green-500', eta: '—' },
-  { trip: 'TR003', vehicle: 'MINI-08', driver: 'Priya', status: 'Dispatched', statusColor: 'bg-blue-500', eta: '1h 10m' },
-  { trip: 'TR004', vehicle: '—', driver: '—', status: 'Draft', statusColor: 'bg-gray-500', eta: 'Awaiting vehicle' },
+  { trip: 'TR001', vehicle: 'VAN-05', driver: 'Alex', status: 'On Trip', statusColor: 'bg-chart-2', eta: '45 min' },
+  { trip: 'TR002', vehicle: 'TRK-12', driver: 'John', status: 'Completed', statusColor: 'bg-primary', eta: '—' },
+  { trip: 'TR003', vehicle: 'MINI-08', driver: 'Priya', status: 'Dispatched', statusColor: 'bg-chart-1', eta: '1h 10m' },
+  { trip: 'TR004', vehicle: '—', driver: '—', status: 'Draft', statusColor: 'bg-muted', eta: 'Awaiting vehicle' },
 ];
 
 const vehicleStatus = [
-  { label: 'Available', percentage: 75, color: 'bg-green-500' },
-  { label: 'On Trip', percentage: 35, color: 'bg-blue-500' },
-  { label: 'In Shop', percentage: 15, color: 'bg-orange-500' },
-  { label: 'Retired', percentage: 5, color: 'bg-pink-500' },
+  { label: 'Available', percentage: 75, color: 'bg-primary' },
+  { label: 'On Trip', percentage: 35, color: 'bg-chart-1' },
+  { label: 'In Shop', percentage: 15, color: 'bg-chart-2' },
+  { label: 'Retired', percentage: 5, color: 'bg-chart-3' },
 ];
 
 export default function DashboardPage() {
@@ -33,15 +49,30 @@ export default function DashboardPage() {
         {/* Filters */}
         <div className="flex items-center gap-4">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
-          <select className="bg-secondary border border-border rounded px-3 py-1.5 text-sm">
-            <option>Vehicle Type: All</option>
-          </select>
-          <select className="bg-secondary border border-border rounded px-3 py-1.5 text-sm">
-            <option>Status: All</option>
-          </select>
-          <select className="bg-secondary border border-border rounded px-3 py-1.5 text-sm">
-            <option>Region: All</option>
-          </select>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-[180px] bg-secondary border-border h-8 text-sm">
+              <SelectValue placeholder="Vehicle Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Vehicle Type: All</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-[180px] bg-secondary border-border h-8 text-sm">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Status: All</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-[180px] bg-secondary border-border h-8 text-sm">
+              <SelectValue placeholder="Region" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Region: All</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Stats Cards */}
@@ -65,32 +96,30 @@ export default function DashboardPage() {
           <div className="col-span-2">
             <h2 className="text-sm font-semibold tracking-wider mb-4">RECENT TRIPS</h2>
             <div className="bg-card border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-muted-foreground text-xs tracking-wider">
-                    <th className="text-left p-3 font-semibold">TRIP</th>
-                    <th className="text-left p-3 font-semibold">VEHICLE</th>
-                    <th className="text-left p-3 font-semibold">DRIVER</th>
-                    <th className="text-left p-3 font-semibold">STATUS</th>
-                    <th className="text-left p-3 font-semibold">ETA</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b border-border text-muted-foreground text-xs tracking-wider">
+                    <TableHead className="text-left p-3 font-semibold">TRIP</TableHead>
+                    <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
+                    <TableHead className="text-left p-3 font-semibold">DRIVER</TableHead>
+                    <TableHead className="text-left p-3 font-semibold">STATUS</TableHead>
+                    <TableHead className="text-left p-3 font-semibold">ETA</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {recentTrips.map((trip) => (
-                    <tr key={trip.trip} className="border-b border-border last:border-0">
-                      <td className="p-3 font-medium">{trip.trip}</td>
-                      <td className="p-3">{trip.vehicle}</td>
-                      <td className="p-3">{trip.driver}</td>
-                      <td className="p-3">
-                        <span className={`${trip.statusColor} text-white text-xs px-3 py-1 rounded-full font-medium`}>
-                          {trip.status}
-                        </span>
-                      </td>
-                      <td className="p-3 text-muted-foreground">{trip.eta}</td>
-                    </tr>
+                    <TableRow key={trip.trip} className="border-b border-border last:border-0">
+                      <TableCell className="p-3 font-medium">{trip.trip}</TableCell>
+                      <TableCell className="p-3">{trip.vehicle}</TableCell>
+                      <TableCell className="p-3">{trip.driver}</TableCell>
+                      <TableCell className="p-3">
+                        <StatusBadge status={trip.status} />
+                      </TableCell>
+                      <TableCell className="p-3 text-muted-foreground">{trip.eta}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
 

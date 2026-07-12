@@ -1,31 +1,50 @@
 'use client';
+import { Button } from '@/components/ui/button';
+
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { StatusBadge } from '@/components/status-badge';
 
 import { useState } from 'react';
 import Sidebar from '@/components/sidebar';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const initialDrivers = [
-  { name: 'Alex', license: 'DL-88213', category: 'LMV', expiry: '12/2028', contact: '98765xxxxx', safetyScore: 96, status: 'Available' },
-  { name: 'John', license: 'DL-44120', category: 'HMV', expiry: '03/2025', contact: '98220xxxxx', safetyScore: 91, status: 'Suspended' },
-  { name: 'Priya', license: 'DL-77031', category: 'LMV', expiry: '08/2027', contact: '99110xxxxx', safetyScore: 99, status: 'On Trip' },
-  { name: 'Suresh', license: 'DL-90045', category: 'HMV', expiry: '01/2027', contact: '97440xxxxx', safetyScore: 88, status: 'Off Duty' },
+  { name: 'Alex', license: 'DL-88213', category: 'LMV', expiry: '2028-12-01', contact: '98765xxxxx', safetyScore: 96, status: 'Available' },
+  { name: 'John', license: 'DL-44120', category: 'HMV', expiry: '2025-03-01', contact: '98220xxxxx', safetyScore: 91, status: 'Suspended' },
+  { name: 'Priya', license: 'DL-77031', category: 'LMV', expiry: '2027-08-01', contact: '99110xxxxx', safetyScore: 99, status: 'On Trip' },
+  { name: 'Suresh', license: 'DL-90045', category: 'HMV', expiry: '2027-01-01', contact: '97440xxxxx', safetyScore: 88, status: 'Off Duty' },
 ];
 
 const statusColors: Record<string, string> = {
-  'Available': 'bg-green-600',
-  'On Trip': 'bg-blue-600',
-  'Off Duty': 'bg-gray-500',
-  'Suspended': 'bg-orange-600',
+  'Available': 'bg-primary',
+  'On Trip': 'bg-chart-1',
+  'Off Duty': 'bg-muted',
+  'Suspended': 'bg-chart-2',
 };
 
 function getSafetyColor(score: number) {
-  if (score >= 90) return 'text-green-400';
-  if (score >= 70) return 'text-amber-400';
-  return 'text-red-400';
+  if (score >= 90) return 'text-primary';
+  if (score >= 70) return 'text-chart-4';
+  return 'text-destructive';
 }
 
 function isLicenseExpired(expiry: string) {
-  const [month, year] = expiry.split('/').map(Number);
-  const exp = new Date(year, month - 1);
+  const exp = new Date(expiry);
   return exp < new Date();
 }
 
@@ -53,65 +72,73 @@ export default function DriversPage() {
     <Sidebar>
       <div className="p-6">
         <div className="flex justify-end mb-4">
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
-          >
-            + Add Driver
-          </button>
+          <Popover open={showForm} onOpenChange={setShowForm}>
+            <PopoverTrigger asChild>
+              <Button className="bg-chart-4 hover:bg-chart-4 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
+                + Add Driver
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-4">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium">Add Driver</h4>
+                  <p className="text-sm text-muted-foreground">Enter driver details to register.</p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <input placeholder="License No." value={form.license} onChange={(e) => setForm({ ...form, license: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <Select value={form.category} onValueChange={(val) => setForm({ ...form, category: val })}>
+                    <SelectTrigger className="bg-transparent border border-border h-[38px] text-sm">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LMV">LMV</SelectItem>
+                      <SelectItem value="HMV">HMV</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <DatePicker value={form.expiry} onChange={(val) => setForm({ ...form, expiry: val })} placeholder="Expiry Date" className="bg-transparent border-border h-[38px]" />
+                  <input placeholder="Contact" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <Button onClick={handleAdd} className="bg-primary hover:bg-primary text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
-
-        {/* Add Driver Form */}
-        {showForm && (
-          <div className="border border-border rounded-lg p-4 mb-4 grid grid-cols-6 gap-3">
-            <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-            <input placeholder="License No." value={form.license} onChange={(e) => setForm({ ...form, license: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm">
-              <option value="LMV">LMV</option>
-              <option value="HMV">HMV</option>
-            </select>
-            <input type="date" value={form.expiry} onChange={(e) => setForm({ ...form, expiry: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-            <input placeholder="Contact" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-            <button onClick={handleAdd} className="bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</button>
-          </div>
-        )}
 
         <div className="border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                <th className="text-left p-3 font-semibold">DRIVER</th>
-                <th className="text-left p-3 font-semibold">LICENSE NO.</th>
-                <th className="text-left p-3 font-semibold">CATEGORY</th>
-                <th className="text-left p-3 font-semibold">EXPIRY</th>
-                <th className="text-left p-3 font-semibold">CONTACT</th>
-                <th className="text-left p-3 font-semibold">SAFETY SCORE</th>
-                <th className="text-left p-3 font-semibold">STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full text-sm">
+            <TableHeader>
+              <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                <TableHead className="text-left p-3 font-semibold">DRIVER</TableHead>
+                <TableHead className="text-left p-3 font-semibold">LICENSE NO.</TableHead>
+                <TableHead className="text-left p-3 font-semibold">CATEGORY</TableHead>
+                <TableHead className="text-left p-3 font-semibold">EXPIRY</TableHead>
+                <TableHead className="text-left p-3 font-semibold">CONTACT</TableHead>
+                <TableHead className="text-left p-3 font-semibold">SAFETY SCORE</TableHead>
+                <TableHead className="text-left p-3 font-semibold">STATUS</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {drivers.map((d) => (
-                <tr key={d.name} className="border-b border-border last:border-0">
-                  <td className="p-3 font-medium">{d.name}</td>
-                  <td className="p-3">{d.license}</td>
-                  <td className="p-3">{d.category}</td>
-                  <td className={`p-3 ${isLicenseExpired(d.expiry) ? 'text-red-400 font-bold' : ''}`}>
+                <TableRow key={d.name} className="border-b border-border last:border-0">
+                  <TableCell className="p-3 font-medium">{d.name}</TableCell>
+                  <TableCell className="p-3">{d.license}</TableCell>
+                  <TableCell className="p-3">{d.category}</TableCell>
+                  <TableCell className={`p-3 ${isLicenseExpired(d.expiry) ? 'text-destructive font-bold' : ''}`}>
                     {d.expiry}{isLicenseExpired(d.expiry) ? ' EXPIRED' : ''}
-                  </td>
-                  <td className="p-3">{d.contact}</td>
-                  <td className={`p-3 font-bold ${getSafetyColor(d.safetyScore)}`}>{d.safetyScore}%</td>
-                  <td className="p-3">
-                    <span className={`${statusColors[d.status]} text-white text-xs px-3 py-1 rounded-full font-medium`}>
-                      {d.status}
-                    </span>
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="p-3">{d.contact}</TableCell>
+                  <TableCell className={`p-3 font-bold ${getSafetyColor(d.safetyScore)}`}>{d.safetyScore}%</TableCell>
+                  <TableCell className="p-3">
+                    <StatusBadge status={d.status} />
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
-        <p className="text-xs text-amber-400 italic mt-3">
+        <p className="text-xs text-chart-4 italic mt-3">
           Rule: Expired license or Suspended status = blocked from trip assignment
         </p>
       </div>

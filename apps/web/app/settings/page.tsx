@@ -1,7 +1,17 @@
 'use client';
+import { Button } from '@/components/ui/button';
+
 
 import { useState } from 'react';
 import Sidebar from '@/components/sidebar';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const rbacData = [
   { role: 'Fleet Manager', fleet: '✓', drivers: '✓', trips: '—', fuelExp: '—', analytics: '✓' },
@@ -55,9 +65,9 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <button className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2 rounded transition-colors">
+              <Button className="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2 rounded transition-colors">
                 Save changes
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -65,30 +75,30 @@ export default function SettingsPage() {
           <div>
             <h2 className="text-lg font-bold italic mb-4">ROLE-BASED ACCESS (RBAC)</h2>
             <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                    <th className="text-left p-3 font-semibold">ROLE</th>
-                    <th className="text-center p-3 font-semibold">FLEET</th>
-                    <th className="text-center p-3 font-semibold">DRIVERS</th>
-                    <th className="text-center p-3 font-semibold">TRIPS</th>
-                    <th className="text-center p-3 font-semibold">FUEL/EXP</th>
-                    <th className="text-center p-3 font-semibold">ANALYTICS</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                    <TableHead className="text-left p-3 font-semibold">ROLE</TableHead>
+                    <TableHead className="text-center p-3 font-semibold">FLEET</TableHead>
+                    <TableHead className="text-center p-3 font-semibold">DRIVERS</TableHead>
+                    <TableHead className="text-center p-3 font-semibold">TRIPS</TableHead>
+                    <TableHead className="text-center p-3 font-semibold">FUEL/EXP</TableHead>
+                    <TableHead className="text-center p-3 font-semibold">ANALYTICS</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {rbacData.map((row) => (
-                    <tr key={row.role} className="border-b border-border last:border-0">
-                      <td className="p-3 font-medium">{row.role}</td>
-                      <td className="p-3 text-center">{row.fleet}</td>
-                      <td className="p-3 text-center">{row.drivers}</td>
-                      <td className="p-3 text-center">{row.trips}</td>
-                      <td className="p-3 text-center">{row.fuelExp}</td>
-                      <td className="p-3 text-center">{row.analytics}</td>
-                    </tr>
+                    <TableRow key={row.role} className="border-b border-border last:border-0">
+                      <TableCell className="p-3 font-medium">{row.role}</TableCell>
+                      <TableCell className="p-3 text-center">{row.fleet}</TableCell>
+                      <TableCell className="p-3 text-center">{row.drivers}</TableCell>
+                      <TableCell className="p-3 text-center">{row.trips}</TableCell>
+                      <TableCell className="p-3 text-center">{row.fuelExp}</TableCell>
+                      <TableCell className="p-3 text-center">{row.analytics}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>

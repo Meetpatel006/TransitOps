@@ -1,7 +1,26 @@
 'use client';
+import { Button } from '@/components/ui/button';
+
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { StatusBadge } from '@/components/status-badge';
 
 import { useState } from 'react';
 import Sidebar from '@/components/sidebar';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const initialVehicles = [
   { regNo: 'GJ01AB4521', name: 'VAN-05', type: 'Van', capacity: 500, capacityUnit: 'kg', odometer: 74000, acqCost: 620000, status: 'Available' },
@@ -11,9 +30,9 @@ const initialVehicles = [
 ];
 
 const statusColors: Record<string, string> = {
-  'Available': 'bg-green-600',
-  'On Trip': 'bg-blue-600',
-  'In Shop': 'bg-amber-600',
+  'Available': 'bg-primary',
+  'On Trip': 'bg-chart-1',
+  'In Shop': 'bg-chart-4',
   'Retired': 'bg-red-400',
 };
 
@@ -69,84 +88,103 @@ export default function FleetPage() {
     <Sidebar>
       <div className="p-6">
         <div className="flex items-center gap-4 mb-4">
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="bg-secondary border border-border rounded px-3 py-1.5 text-sm">
-            <option value="All">Type: All</option>
-            <option value="Van">Van</option>
-            <option value="Truck">Truck</option>
-            <option value="Mini">Mini</option>
-          </select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[140px] bg-secondary border-border h-8 text-sm">
+              <SelectValue placeholder="Type: All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">Type: All</SelectItem>
+              <SelectItem value="Van">Van</SelectItem>
+              <SelectItem value="Truck">Truck</SelectItem>
+              <SelectItem value="Mini">Mini</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-secondary border border-border rounded px-3 py-1.5 text-sm">
-            <option value="All">Status: All</option>
-            <option value="Available">Available</option>
-            <option value="On Trip">On Trip</option>
-            <option value="In Shop">In Shop</option>
-            <option value="Retired">Retired</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[150px] bg-secondary border-border h-8 text-sm">
+              <SelectValue placeholder="Status: All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">Status: All</SelectItem>
+              <SelectItem value="Available">Available</SelectItem>
+              <SelectItem value="On Trip">On Trip</SelectItem>
+              <SelectItem value="In Shop">In Shop</SelectItem>
+              <SelectItem value="Retired">Retired</SelectItem>
+            </SelectContent>
+          </Select>
 
           <input type="text" placeholder="Search reg. no..." value={search} onChange={(e) => setSearch(e.target.value)} className="bg-secondary border border-border rounded px-3 py-1.5 text-sm" />
 
           <div className="flex-1" />
 
-          <button onClick={() => setShowForm(!showForm)} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
-            + Add Vehicle
-          </button>
+          <Popover open={showForm} onOpenChange={setShowForm}>
+            <PopoverTrigger asChild>
+              <Button className="bg-chart-4 hover:bg-chart-4 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
+                + Add Vehicle
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-4">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium">Add Vehicle</h4>
+                  <p className="text-sm text-muted-foreground">Enter new vehicle details.</p>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {error && <p className="text-destructive text-sm">{error}</p>}
+                  <input placeholder="Reg. No." value={form.regNo} onChange={(e) => setForm({ ...form, regNo: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <input placeholder="Name/Model" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <Select value={form.type} onValueChange={(val) => setForm({ ...form, type: val })}>
+                    <SelectTrigger className="bg-transparent border border-border h-[38px] text-sm">
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Van">Van</SelectItem>
+                      <SelectItem value="Truck">Truck</SelectItem>
+                      <SelectItem value="Mini">Mini</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input type="number" placeholder="Capacity (kg)" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <input type="number" placeholder="Odometer" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <input type="number" placeholder="Acq. Cost" value={form.acqCost} onChange={(e) => setForm({ ...form, acqCost: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                  <Button onClick={handleAdd} className="bg-primary hover:bg-primary text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
-
-        {/* Add Vehicle Form */}
-        {showForm && (
-          <div className="border border-border rounded-lg p-4 mb-4">
-            {error && <p className="text-red-400 text-sm mb-2">{error}</p>}
-            <div className="grid grid-cols-6 gap-3">
-              <input placeholder="Reg. No." value={form.regNo} onChange={(e) => setForm({ ...form, regNo: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <input placeholder="Name/Model" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm">
-                <option value="Van">Van</option>
-                <option value="Truck">Truck</option>
-                <option value="Mini">Mini</option>
-              </select>
-              <input type="number" placeholder="Capacity (kg)" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <input type="number" placeholder="Odometer" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <input type="number" placeholder="Acq. Cost" value={form.acqCost} onChange={(e) => setForm({ ...form, acqCost: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-            </div>
-            <button onClick={handleAdd} className="mt-3 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</button>
-          </div>
-        )}
 
         <div className="border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                <th className="text-left p-3 font-semibold">REG. NO. (UNIQUE)</th>
-                <th className="text-left p-3 font-semibold">NAME/MODE</th>
-                <th className="text-left p-3 font-semibold">TYPE</th>
-                <th className="text-left p-3 font-semibold">CAPACITY</th>
-                <th className="text-left p-3 font-semibold">ODOMETER</th>
-                <th className="text-left p-3 font-semibold">ACQ. COST</th>
-                <th className="text-left p-3 font-semibold">STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full text-sm">
+            <TableHeader>
+              <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                <TableHead className="text-left p-3 font-semibold">REG. NO. (UNIQUE)</TableHead>
+                <TableHead className="text-left p-3 font-semibold">NAME/MODE</TableHead>
+                <TableHead className="text-left p-3 font-semibold">TYPE</TableHead>
+                <TableHead className="text-left p-3 font-semibold">CAPACITY</TableHead>
+                <TableHead className="text-left p-3 font-semibold">ODOMETER</TableHead>
+                <TableHead className="text-left p-3 font-semibold">ACQ. COST</TableHead>
+                <TableHead className="text-left p-3 font-semibold">STATUS</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {filtered.map((v) => (
-                <tr key={v.regNo} className="border-b border-border last:border-0">
-                  <td className="p-3 font-medium">{v.regNo}</td>
-                  <td className="p-3">{v.name}</td>
-                  <td className="p-3">{v.type}</td>
-                  <td className="p-3">{v.capacity} {v.capacityUnit}</td>
-                  <td className="p-3">{formatOdometer(v.odometer)}</td>
-                  <td className="p-3">{formatCost(v.acqCost)}</td>
-                  <td className="p-3">
-                    <span className={`${statusColors[v.status]} text-white text-xs px-3 py-1 rounded-full font-medium`}>
-                      {v.status}
-                    </span>
-                  </td>
-                </tr>
+                <TableRow key={v.regNo} className="border-b border-border last:border-0">
+                  <TableCell className="p-3 font-medium">{v.regNo}</TableCell>
+                  <TableCell className="p-3">{v.name}</TableCell>
+                  <TableCell className="p-3">{v.type}</TableCell>
+                  <TableCell className="p-3">{v.capacity} {v.capacityUnit}</TableCell>
+                  <TableCell className="p-3">{formatOdometer(v.odometer)}</TableCell>
+                  <TableCell className="p-3">{formatCost(v.acqCost)}</TableCell>
+                  <TableCell className="p-3">
+                    <StatusBadge status={v.status} />
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
-        <p className="text-xs text-amber-400 italic mt-3">
+        <p className="text-xs text-chart-4 italic mt-3">
           Rule: Registration No. must be unique · Retired/In Shop vehicles are hidden from Trip Dispatcher
         </p>
       </div>

@@ -1,7 +1,28 @@
 'use client';
+import { Button } from '@/components/ui/button';
+
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { StatusBadge } from '@/components/status-badge';
 
 import { useState } from 'react';
 import Sidebar from '@/components/sidebar';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
+
 
 interface FuelLog {
   vehicle: string;
@@ -66,101 +87,125 @@ export default function FuelExpensesPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold italic">FUEL LOGS</h2>
             <div className="flex gap-2">
-              <button onClick={() => { setShowFuelForm(!showFuelForm); setShowExpenseForm(false); }} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
-                + Log Fuel
-              </button>
-              <button onClick={() => { setShowExpenseForm(!showExpenseForm); setShowFuelForm(false); }} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
-                + Add Expense
-              </button>
+              <Popover open={showFuelForm} onOpenChange={setShowFuelForm}>
+                <PopoverTrigger asChild>
+                  <Button className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
+                    + Log Fuel
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80 p-4">
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium">Log Fuel</h4>
+                      <p className="text-sm text-muted-foreground">Add new fuel record.</p>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <Select value={fuelForm.vehicle} onValueChange={(val) => setFuelForm({ ...fuelForm, vehicle: val })}>
+                        <SelectTrigger className="bg-transparent border border-border h-[38px] text-sm">
+                          <SelectValue placeholder="Select vehicle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicles.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <DatePicker value={fuelForm.date} onChange={(val) => setFuelForm({ ...fuelForm, date: val })} placeholder="Date" className="bg-transparent border-border h-[38px]" />
+                      <input type="number" placeholder="Liters" value={fuelForm.liters} onChange={(e) => setFuelForm({ ...fuelForm, liters: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                      <input type="number" placeholder="Cost" value={fuelForm.cost} onChange={(e) => setFuelForm({ ...fuelForm, cost: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                      <Button onClick={handleAddFuel} className="bg-chart-4 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
-          {/* Add Fuel Form */}
-          {showFuelForm && (
-            <div className="border border-border rounded-lg p-4 mb-4 grid grid-cols-4 gap-3">
-              <select value={fuelForm.vehicle} onChange={(e) => setFuelForm({ ...fuelForm, vehicle: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm">
-                <option value="">Select vehicle</option>
-                {vehicles.map((v) => <option key={v} value={v}>{v}</option>)}
-              </select>
-              <input type="date" value={fuelForm.date} onChange={(e) => setFuelForm({ ...fuelForm, date: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <input type="number" placeholder="Liters" value={fuelForm.liters} onChange={(e) => setFuelForm({ ...fuelForm, liters: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <input type="number" placeholder="Cost" value={fuelForm.cost} onChange={(e) => setFuelForm({ ...fuelForm, cost: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <button onClick={handleAddFuel} className="col-span-4 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</button>
-            </div>
-          )}
-
           <div className="border border-border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                  <th className="text-left p-3 font-semibold">VEHICLE</th>
-                  <th className="text-left p-3 font-semibold">DATE</th>
-                  <th className="text-left p-3 font-semibold">LITERS</th>
-                  <th className="text-left p-3 font-semibold">FUEL COST</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                  <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">DATE</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">LITERS</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">FUEL COST</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {fuelLogs.map((log, i) => (
-                  <tr key={i} className="border-b border-border last:border-0">
-                    <td className="p-3">{log.vehicle}</td>
-                    <td className="p-3">{log.date}</td>
-                    <td className="p-3">{log.liters} L</td>
-                    <td className="p-3">{log.cost.toLocaleString()}</td>
-                  </tr>
+                  <TableRow key={i} className="border-b border-border last:border-0">
+                    <TableCell className="p-3">{log.vehicle}</TableCell>
+                    <TableCell className="p-3">{log.date}</TableCell>
+                    <TableCell className="p-3">{log.liters} L</TableCell>
+                    <TableCell className="p-3">{log.cost.toLocaleString()}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
         {/* Other Expenses */}
         <div>
-          <h2 className="text-lg font-bold italic mb-4">OTHER EXPENSES (TOLL / MISC)</h2>
-
-          {/* Add Expense Form */}
-          {showExpenseForm && (
-            <div className="border border-border rounded-lg p-4 mb-4 grid grid-cols-5 gap-3">
-              <input placeholder="Trip ID" value={expenseForm.trip} onChange={(e) => setExpenseForm({ ...expenseForm, trip: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <select value={expenseForm.vehicle} onChange={(e) => setExpenseForm({ ...expenseForm, vehicle: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm">
-                <option value="">Select vehicle</option>
-                {vehicles.map((v) => <option key={v} value={v}>{v}</option>)}
-              </select>
-              <input type="number" placeholder="Toll" value={expenseForm.toll} onChange={(e) => setExpenseForm({ ...expenseForm, toll: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <input type="number" placeholder="Other" value={expenseForm.other} onChange={(e) => setExpenseForm({ ...expenseForm, other: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <input type="number" placeholder="Maint. (Linked)" value={expenseForm.maintLinked} onChange={(e) => setExpenseForm({ ...expenseForm, maintLinked: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-              <button onClick={handleAddExpense} className="col-span-5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</button>
-            </div>
-          )}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold italic">OTHER EXPENSES (TOLL / MISC)</h2>
+            <Popover open={showExpenseForm} onOpenChange={setShowExpenseForm}>
+              <PopoverTrigger asChild>
+                <Button className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
+                  + Add Expense
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-4">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium">Add Expense</h4>
+                    <p className="text-sm text-muted-foreground">Record toll or misc expenses.</p>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <input placeholder="Trip ID" value={expenseForm.trip} onChange={(e) => setExpenseForm({ ...expenseForm, trip: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                    <Select value={expenseForm.vehicle} onValueChange={(val) => setExpenseForm({ ...expenseForm, vehicle: val })}>
+                      <SelectTrigger className="bg-transparent border border-border h-[38px] text-sm">
+                        <SelectValue placeholder="Select vehicle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {vehicles.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <input type="number" placeholder="Toll" value={expenseForm.toll} onChange={(e) => setExpenseForm({ ...expenseForm, toll: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                    <input type="number" placeholder="Other" value={expenseForm.other} onChange={(e) => setExpenseForm({ ...expenseForm, other: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                    <input type="number" placeholder="Maint. (Linked)" value={expenseForm.maintLinked} onChange={(e) => setExpenseForm({ ...expenseForm, maintLinked: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                    <Button onClick={handleAddExpense} className="bg-chart-4 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
 
           <div className="border border-border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                  <th className="text-left p-3 font-semibold">TRIP</th>
-                  <th className="text-left p-3 font-semibold">VEHICLE</th>
-                  <th className="text-left p-3 font-semibold">TOLL</th>
-                  <th className="text-left p-3 font-semibold">OTHER</th>
-                  <th className="text-left p-3 font-semibold">MAINT. (LINKED)</th>
-                  <th className="text-left p-3 font-semibold">TOTAL</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table className="w-full text-sm">
+              <TableHeader>
+                <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                  <TableHead className="text-left p-3 font-semibold">TRIP</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">TOLL</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">OTHER</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">MAINT. (LINKED)</TableHead>
+                  <TableHead className="text-left p-3 font-semibold">TOTAL</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {expenses.map((exp, i) => (
-                  <tr key={i} className="border-b border-border last:border-0">
-                    <td className="p-3">{exp.trip}</td>
-                    <td className="p-3">{exp.vehicle}</td>
-                    <td className="p-3">{exp.toll}</td>
-                    <td className="p-3">{exp.other}</td>
-                    <td className="p-3">{exp.maintLinked.toLocaleString()}</td>
-                    <td className="p-3">
-                      <span className={`text-xs px-3 py-1 rounded-full font-medium ${exp.status === 'Completed' ? 'bg-green-600 text-white' : 'bg-amber-600 text-white'}`}>
-                        {exp.status}
-                      </span>
-                    </td>
-                  </tr>
+                  <TableRow key={i} className="border-b border-border last:border-0">
+                    <TableCell className="p-3">{exp.trip}</TableCell>
+                    <TableCell className="p-3">{exp.vehicle}</TableCell>
+                    <TableCell className="p-3">{exp.toll}</TableCell>
+                    <TableCell className="p-3">{exp.other}</TableCell>
+                    <TableCell className="p-3">{exp.maintLinked.toLocaleString()}</TableCell>
+                    <TableCell className="p-3">
+                      <StatusBadge status={exp.status} />
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 

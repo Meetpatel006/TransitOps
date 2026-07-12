@@ -1,7 +1,27 @@
 'use client';
+import { Button } from '@/components/ui/button';
+
+import { StatusBadge } from '@/components/status-badge';
 
 import { useState } from 'react';
 import Sidebar from '@/components/sidebar';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
+
 
 interface MaintenanceRecord {
   id: number;
@@ -55,10 +75,14 @@ export default function MaintenancePage() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">VEHICLE</label>
-                <select value={form.vehicle} onChange={(e) => setForm({ ...form, vehicle: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm">
-                  <option value="">Select vehicle</option>
-                  {vehicles.map((v) => <option key={v} value={v}>{v}</option>)}
-                </select>
+                <Select value={form.vehicle} onValueChange={(val) => setForm({ ...form, vehicle: val })}>
+                  <SelectTrigger className="w-full bg-transparent border-border h-[38px] text-sm">
+                    <SelectValue placeholder="Select vehicle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -73,12 +97,12 @@ export default function MaintenancePage() {
 
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">DATE</label>
-                <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm" />
+                <DatePicker value={form.date} onChange={(val) => setForm({ ...form, date: val })} placeholder="Date" className="bg-transparent border-border h-[38px] w-full" />
               </div>
 
-              <button onClick={handleSave} className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded transition-colors">
+              <Button onClick={handleSave} className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded transition-colors">
                 Save
-              </button>
+              </Button>
             </div>
 
             {/* Status Flow */}
@@ -103,39 +127,35 @@ export default function MaintenancePage() {
           <div>
             <h2 className="text-lg font-bold italic mb-4">SERVICE LOG</h2>
             <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                    <th className="text-left p-3 font-semibold">VEHICLE</th>
-                    <th className="text-left p-3 font-semibold">SERVICE</th>
-                    <th className="text-left p-3 font-semibold">COST</th>
-                    <th className="text-left p-3 font-semibold">STATUS</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                    <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
+                    <TableHead className="text-left p-3 font-semibold">SERVICE</TableHead>
+                    <TableHead className="text-left p-3 font-semibold">COST</TableHead>
+                    <TableHead className="text-left p-3 font-semibold">STATUS</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {records.map((log) => (
-                    <tr key={log.id} className="border-b border-border last:border-0">
-                      <td className="p-3">{log.vehicle}</td>
-                      <td className="p-3">{log.service}</td>
-                      <td className="p-3">{log.cost.toLocaleString()}</td>
-                      <td className="p-3">
+                    <TableRow key={log.id} className="border-b border-border last:border-0">
+                      <TableCell className="p-3">{log.vehicle}</TableCell>
+                      <TableCell className="p-3">{log.service}</TableCell>
+                      <TableCell className="p-3">{log.cost.toLocaleString()}</TableCell>
+                      <TableCell className="p-3">
                         <div className="flex items-center gap-2">
-                          <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                            log.status === 'Completed' ? 'bg-green-600 text-white' : 'bg-amber-600 text-white'
-                          }`}>
-                            {log.status}
-                          </span>
+                          <StatusBadge status={log.status} />
                           {log.status === 'In Progress' && (
-                            <button onClick={() => handleComplete(log.id)} className="text-xs bg-teal-600 hover:bg-teal-700 text-white px-2 py-1 rounded">
+                            <Button onClick={() => handleComplete(log.id)} className="text-xs bg-teal-600 hover:bg-teal-700 text-white px-2 py-1 rounded">
                               Close
-                            </button>
+                            </Button>
                           )}
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>

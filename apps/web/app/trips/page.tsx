@@ -1,12 +1,22 @@
 'use client';
+import { Button } from '@/components/ui/button';
+
+import { StatusBadge } from '@/components/status-badge';
 
 import { useState } from 'react';
 import Sidebar from '@/components/sidebar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const tripStatusColors: Record<string, string> = {
-  'Draft': 'bg-gray-500',
-  'Dispatched': 'bg-blue-600',
-  'Completed': 'bg-green-600',
+  'Draft': 'bg-muted',
+  'Dispatched': 'bg-chart-1',
+  'Completed': 'bg-primary',
   'Cancelled': 'bg-red-400',
 };
 
@@ -112,9 +122,9 @@ export default function TripsPage() {
           {['Draft', 'Dispatched', 'Completed', 'Cancelled'].map((step, i) => (
             <div key={step} className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${
-                step === 'Dispatched' ? 'bg-blue-500' :
-                step === 'Draft' ? 'bg-green-500' :
-                step === 'Completed' ? 'bg-gray-400' : 'bg-gray-400'
+                step === 'Dispatched' ? 'bg-chart-1' :
+                step === 'Draft' ? 'bg-primary' :
+                step === 'Completed' ? 'bg-muted' : 'bg-muted'
               }`} />
               <span className="text-xs">{step}</span>
               {i < 3 && <span className="text-muted-foreground mx-1">→</span>}
@@ -139,22 +149,30 @@ export default function TripsPage() {
 
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">VEHICLE (AVAILABLE ONLY)</label>
-                <select value={form.vehicle} onChange={(e) => setForm({ ...form, vehicle: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm">
-                  <option value="">Select vehicle</option>
-                  {availableVehicles.map((v) => (
-                    <option key={v.id} value={v.id}>{v.name} - {v.capacity} kg capacity</option>
-                  ))}
-                </select>
+                <Select value={form.vehicle} onValueChange={(val) => setForm({ ...form, vehicle: val })}>
+                  <SelectTrigger className="w-full bg-transparent border-border h-[38px] text-sm">
+                    <SelectValue placeholder="Select vehicle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableVehicles.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>{v.name} - {v.capacity} kg capacity</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-xs font-bold tracking-wider block mb-1">DRIVER (AVAILABLE ONLY)</label>
-                <select value={form.driver} onChange={(e) => setForm({ ...form, driver: e.target.value })} className="w-full bg-transparent border border-border rounded px-3 py-2 text-sm">
-                  <option value="">Select driver</option>
-                  {availableDrivers.map((d) => (
-                    <option key={d.name} value={d.name}>{d.name}</option>
-                  ))}
-                </select>
+                <Select value={form.driver} onValueChange={(val) => setForm({ ...form, driver: val })}>
+                  <SelectTrigger className="w-full bg-transparent border-border h-[38px] text-sm">
+                    <SelectValue placeholder="Select driver" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableDrivers.map((d) => (
+                      <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -168,7 +186,7 @@ export default function TripsPage() {
               </div>
 
               {overCapacity && (
-                <div className="border border-red-500 rounded p-3 text-sm text-red-400">
+                <div className="border border-red-500 rounded p-3 text-sm text-destructive">
                   <p>Vehicle Capacity: {capacityNum} kg</p>
                   <p>Cargo Weight: {cargoNum} kg</p>
                   <p>✗ Capacity exceeded by {cargoNum - capacityNum} kg — dispatch blocked</p>
@@ -176,16 +194,16 @@ export default function TripsPage() {
               )}
 
               <div className="flex gap-3">
-                <button
+                <Button
                   onClick={handleDispatch}
                   disabled={!canDispatch}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-chart-1 hover:bg-chart-1 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Dispatch
-                </button>
-                <button onClick={() => setForm({ source: '', destination: '', vehicle: '', driver: '', cargoWeight: '', distance: '' })} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">
+                </Button>
+                <Button onClick={() => setForm({ source: '', destination: '', vehicle: '', driver: '', cargoWeight: '', distance: '' })} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -200,17 +218,15 @@ export default function TripsPage() {
                     <div>
                       <p className="font-bold">{trip.id}</p>
                       <p className="text-sm text-muted-foreground">{trip.source} → {trip.destination}</p>
-                      <span className={`${tripStatusColors[trip.status]} text-white text-xs px-3 py-1 rounded-full font-medium inline-block mt-2`}>
-                        {trip.status}
-                      </span>
+                      <StatusBadge status={trip.status} />
                     </div>
                     <div className="text-right text-sm text-muted-foreground">
                       <p>{trip.vehicle ? `${trip.vehicle} / ${trip.driver}` : 'Unassigned'}</p>
                       <p className="mt-2">{trip.eta}</p>
                       {trip.status === 'Dispatched' && (
                         <div className="flex gap-2 mt-2 justify-end">
-                          <button onClick={() => handleComplete(trip.id)} className="text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded">Complete</button>
-                          <button onClick={() => handleCancel(trip.id)} className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Cancel</button>
+                          <Button onClick={() => handleComplete(trip.id)} className="text-xs bg-primary hover:bg-primary text-white px-2 py-1 rounded">Complete</Button>
+                          <Button onClick={() => handleCancel(trip.id)} className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Cancel</Button>
                         </div>
                       )}
                     </div>

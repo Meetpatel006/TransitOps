@@ -3,18 +3,18 @@
 import Sidebar from '@/components/sidebar';
 
 const stats = [
-  { label: 'FUEL EFFICIENCY', value: '8.4 km/l', color: 'border-l-green-500' },
-  { label: 'FLEET UTILIZATION', value: '81%', color: 'border-l-green-500' },
-  { label: 'OPERATIONAL COST', value: '34,070', color: 'border-l-orange-500' },
-  { label: 'VEHICLE ROI', value: '14.2%', color: 'border-l-green-500' },
+  { label: 'FUEL EFFICIENCY', value: '8.4 km/l', color: 'border-l-primary' },
+  { label: 'FLEET UTILIZATION', value: '81%', color: 'border-l-primary' },
+  { label: 'OPERATIONAL COST', value: '34,070', color: 'border-l-chart-2' },
+  { label: 'VEHICLE ROI', value: '14.2%', color: 'border-l-primary' },
 ];
 
 const monthlyRevenue = [45, 52, 48, 61, 55, 70, 65, 72, 68, 75, 80, 85];
 
 const topCostliest = [
-  { vehicle: 'TRUCK-12', cost: 18000, color: 'bg-pink-500' },
-  { vehicle: 'MINI-08', cost: 6200, color: 'bg-amber-500' },
-  { vehicle: 'VAN-05', cost: 2800, color: 'bg-blue-500' },
+  { vehicle: 'TRUCK-12', cost: 18000, color: 'bg-chart-3' },
+  { vehicle: 'MINI-08', cost: 6200, color: 'bg-chart-4' },
+  { vehicle: 'VAN-05', cost: 2800, color: 'bg-chart-1' },
 ];
 
 const maxCost = Math.max(...topCostliest.map((v) => v.cost));
@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
               {monthlyRevenue.map((val, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <div
-                    className="w-full bg-blue-500 rounded-t"
+                    className="w-full bg-chart-1 rounded-t"
                     style={{ height: `${(val / 100) * 180}px` }}
                   />
                 </div>
