@@ -10,12 +10,8 @@ import { XAxis } from '@/components/dither-kit/x-axis';
 import { YAxis } from '@/components/dither-kit/y-axis';
 import Stats13 from '@/components/stats13';
 import { useState, useEffect } from 'react';
-import { vehiclesService } from '@/services/vehicles';
-import { driversService } from '@/services/drivers';
-import { tripsService } from '@/services/trips';
-import { maintenanceService } from '@/services/maintenance';
-import { fuelLogsService } from '@/services/fuel-logs';
-import { expensesService } from '@/services/expenses';
+import { analyticsService } from '@/services/analytics';
+import { ResourceGuard } from '@/components/resource-guard';
 import type { Vehicle, Driver, Trip, MaintenanceLog, FuelLog, Expense } from '@transitops/shared';
 
 function formatCurrency(n: number) {
@@ -42,12 +38,17 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      vehiclesService.list(), driversService.list(), tripsService.list(),
-      maintenanceService.list(), fuelLogsService.list(), expensesService.list(),
-    ]).then(([v, d, t, m, f, e]) => {
-      setVehicles(v); setDrivers(d); setTrips(t); setMaintenance(m); setFuelLogs(f); setExpenses(e);
-    }).catch(console.error).finally(() => setLoading(false));
+    analyticsService.get()
+      .then((data) => {
+        setVehicles(data.vehicles);
+        setDrivers(data.drivers);
+        setTrips(data.trips);
+        setMaintenance(data.maintenance);
+        setFuelLogs(data.fuel_logs);
+        setExpenses(data.expenses);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
@@ -134,6 +135,7 @@ export default function AnalyticsPage() {
   const costChartConfig = { fuel: { label: 'Fuel (₹k)', color: 'orange' as const }, maint: { label: 'Maintenance (₹k)', color: 'green' as const } };
 
   return (
+    <ResourceGuard resource="analytics">
     <Sidebar>
       <div className="p-6 space-y-8">
         <div>
@@ -290,5 +292,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </Sidebar>
+    </ResourceGuard>
   );
 }

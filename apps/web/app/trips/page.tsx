@@ -6,6 +6,9 @@ import Sidebar from '@/components/sidebar';
 import { tripsService } from '@/services/trips';
 import { vehiclesService } from '@/services/vehicles';
 import { driversService } from '@/services/drivers';
+import { ResourceGuard } from '@/components/resource-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { canWrite } from '@/lib/rbac';
 import type { Trip, Vehicle, Driver } from '@transitops/shared';
 import {
   Select,
@@ -16,6 +19,8 @@ import {
 } from "@/components/ui/select";
 
 export default function TripsPage() {
+  const { user } = useAuth();
+  const canWriteTrips = canWrite(user?.role_name, 'trips');
   const [trips, setTrips] = useState<Trip[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -94,6 +99,7 @@ export default function TripsPage() {
   if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
+    <ResourceGuard resource="trips">
     <Sidebar>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
@@ -101,19 +107,21 @@ export default function TripsPage() {
             <h1 className="text-xl font-bold">Trips</h1>
             <p className="text-sm text-muted-foreground">{activeTrips.length} active · {trips.length} total</p>
           </div>
-          <Button onClick={() => setShowCreate(!showCreate)} className="bg-chart-1 hover:bg-chart-1/90 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
-            {showCreate ? 'Close' : '+ Create Trip'}
-          </Button>
+          {canWriteTrips && (
+            <Button onClick={() => setShowCreate(!showCreate)} className="text-sm font-medium px-4 py-2 rounded transition-colors">
+              {showCreate ? 'Close' : '+ Create Trip'}
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center gap-4 mb-6">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'All')}>
             <SelectTrigger className="w-[150px] bg-secondary border-border h-8 text-sm">
-              <SelectValue placeholder="Status: All" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">Status: All</SelectItem>
+              <SelectItem value="All">All</SelectItem>
               <SelectItem value="Dispatched">Dispatched</SelectItem>
               <SelectItem value="Draft">Draft</SelectItem>
               <SelectItem value="Completed">Completed</SelectItem>
@@ -122,19 +130,19 @@ export default function TripsPage() {
           </Select>
           <Select value={vehicleFilter} onValueChange={(v) => setVehicleFilter(v ?? 'All')}>
             <SelectTrigger className="w-[150px] bg-secondary border-border h-8 text-sm">
-              <SelectValue placeholder="Vehicle: All" />
+              <SelectValue placeholder="Vehicle" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">Vehicle: All</SelectItem>
+              <SelectItem value="All">All</SelectItem>
               {vehicles.map(v => (<SelectItem key={v.id} value={String(v.id)}>{v.name_model}</SelectItem>))}
             </SelectContent>
           </Select>
           <Select value={driverFilter} onValueChange={(v) => setDriverFilter(v ?? 'All')}>
             <SelectTrigger className="w-[140px] bg-secondary border-border h-8 text-sm">
-              <SelectValue placeholder="Driver: All" />
+              <SelectValue placeholder="Driver" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">Driver: All</SelectItem>
+              <SelectItem value="All">All</SelectItem>
               {drivers.map(d => (<SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>))}
             </SelectContent>
           </Select>
@@ -187,8 +195,8 @@ export default function TripsPage() {
             {overCapacity && (<div className="border border-red-500 rounded p-3 text-sm text-destructive mt-3">Cargo ({cargoNum} kg) exceeds vehicle capacity ({capacityNum} kg)</div>)}
             {formError && (<div className="border border-red-500 rounded p-3 text-sm text-destructive mt-3">{formError}</div>)}
             <div className="flex gap-3 mt-4">
-              <Button onClick={handleCreate} disabled={!canSubmit} className="bg-chart-1 hover:bg-chart-1/90 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">Dispatch Trip</Button>
-              <Button onClick={() => { setShowCreate(false); setFormError(''); }} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">Cancel</Button>
+              <Button onClick={handleCreate} disabled={!canSubmit} className="text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">Dispatch Trip</Button>
+              <Button variant="outline" onClick={() => { setShowCreate(false); setFormError(''); }} className="text-sm font-medium px-6 py-2 rounded transition-colors">Cancel</Button>
             </div>
           </div>
         )}
@@ -224,21 +232,23 @@ export default function TripsPage() {
                           <div><span className="text-xs font-bold tracking-wider text-muted-foreground">CARGO</span><p className="mt-1">{trip.cargo_weight} kg</p></div>
                           <div><span className="text-xs font-bold tracking-wider text-muted-foreground">DISTANCE</span><p className="mt-1">{trip.planned_distance} km</p></div>
                         </div>
+                        {canWriteTrips && (
                         <div className="flex gap-2">
                           {completingId === trip.id ? (
                             <div className="flex items-center gap-2">
                               <input type="number" placeholder="Odometer" value={completeForm.final_odometer} onChange={(e) => setCompleteForm({ ...completeForm, final_odometer: e.target.value })} className="bg-transparent border border-border rounded px-3 py-1.5 text-sm w-32" />
                               <input type="number" placeholder="Fuel (L)" value={completeForm.fuel_consumed} onChange={(e) => setCompleteForm({ ...completeForm, fuel_consumed: e.target.value })} className="bg-transparent border border-border rounded px-3 py-1.5 text-sm w-32" />
-                              <Button onClick={() => handleComplete(trip.id)} className="text-xs bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded">Confirm</Button>
-                              <Button onClick={() => setCompletingId(null)} className="text-xs bg-transparent border border-border px-3 py-1.5 rounded hover:bg-secondary">Back</Button>
+                              <Button onClick={() => handleComplete(trip.id)} className="text-xs px-3 py-1.5 rounded">Confirm</Button>
+                              <Button variant="outline" onClick={() => setCompletingId(null)} className="text-xs px-3 py-1.5 rounded">Back</Button>
                             </div>
                           ) : (
                             <>
-                              <Button onClick={() => { setCompletingId(trip.id); setCompleteForm({ final_odometer: '', fuel_consumed: '' }); }} className="text-xs bg-primary hover:bg-primary/90 text-white px-3 py-1.5 rounded">Complete</Button>
-                              <Button onClick={() => handleCancel(trip.id)} className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded">Cancel</Button>
+                              <Button onClick={() => { setCompletingId(trip.id); setCompleteForm({ final_odometer: '', fuel_consumed: '' }); }} className="text-xs px-3 py-1.5 rounded">Complete</Button>
+                              <Button variant="destructive" onClick={() => handleCancel(trip.id)} className="text-xs px-3 py-1.5 rounded">Cancel</Button>
                             </>
                           )}
                         </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -281,10 +291,10 @@ export default function TripsPage() {
                           {trip.final_odometer != null && (<div><span className="text-xs font-bold tracking-wider text-muted-foreground">FINAL ODOMETER</span><p className="mt-1">{trip.final_odometer}</p></div>)}
                           {trip.fuel_consumed != null && (<div><span className="text-xs font-bold tracking-wider text-muted-foreground">FUEL CONSUMED</span><p className="mt-1">{trip.fuel_consumed} L</p></div>)}
                         </div>
-                        {trip.status === 'Draft' && (
+                        {trip.status === 'Draft' && canWriteTrips && (
                           <div className="flex gap-2 mt-4">
-                            <Button onClick={() => handleDispatch(trip.id)} className="text-xs bg-chart-1 hover:bg-chart-1/90 text-white px-3 py-1.5 rounded">Dispatch</Button>
-                            <Button onClick={() => handleCancel(trip.id)} className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded">Cancel</Button>
+                            <Button onClick={() => handleDispatch(trip.id)} className="text-xs px-3 py-1.5 rounded">Dispatch</Button>
+                            <Button variant="destructive" onClick={() => handleCancel(trip.id)} className="text-xs px-3 py-1.5 rounded">Cancel</Button>
                           </div>
                         )}
                       </div>
@@ -297,5 +307,6 @@ export default function TripsPage() {
         )}
       </div>
     </Sidebar>
+    </ResourceGuard>
   );
 }

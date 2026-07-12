@@ -5,6 +5,9 @@ import { useState, useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
 import { maintenanceService } from '@/services/maintenance';
 import { vehiclesService } from '@/services/vehicles';
+import { ResourceGuard } from '@/components/resource-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { canWrite } from '@/lib/rbac';
 import type { MaintenanceLog, Vehicle } from '@transitops/shared';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -24,6 +27,8 @@ function formatDate(d: string) {
 }
 
 export default function MaintenancePage() {
+  const { user } = useAuth();
+  const canWriteFleet = canWrite(user?.role_name, 'fleet');
   const [records, setRecords] = useState<MaintenanceLog[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,6 +99,7 @@ export default function MaintenancePage() {
   if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
+    <ResourceGuard resource="fleet">
     <Sidebar>
       <div className="p-6 space-y-8">
         <div className="flex items-center justify-between">
@@ -101,9 +107,11 @@ export default function MaintenancePage() {
             <h1 className="text-xl font-bold">Maintenance</h1>
             <p className="text-sm text-muted-foreground">{records.length} records · {inProgressCount} in progress</p>
           </div>
-          <Button onClick={() => setShowForm(!showForm)} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
-            {showForm ? 'Close' : '+ Log Service'}
-          </Button>
+          {canWriteFleet && (
+            <Button onClick={() => setShowForm(!showForm)} className="text-sm font-medium px-4 py-2 rounded transition-colors">
+              {showForm ? 'Close' : '+ Log Service'}
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-4 gap-4">
@@ -134,19 +142,19 @@ export default function MaintenancePage() {
             <h2 className="text-sm font-semibold tracking-wider">SERVICE LOG</h2>
             <Select value={vehicleFilter} onValueChange={(v) => setVehicleFilter(v ?? 'All')}>
               <SelectTrigger className="w-[130px] bg-secondary border-border h-8 text-sm">
-                <SelectValue placeholder="Vehicle: All" />
+                <SelectValue placeholder="Vehicle" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">Vehicle: All</SelectItem>
+                <SelectItem value="All">All</SelectItem>
                 {vehicles.map(v => <SelectItem key={v.id} value={v.name_model}>{v.name_model}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'All')}>
               <SelectTrigger className="w-[140px] bg-secondary border-border h-8 text-sm">
-                <SelectValue placeholder="Status: All" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All">Status: All</SelectItem>
+                <SelectItem value="All">All</SelectItem>
                 <SelectItem value="In Progress">In Progress</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>
               </SelectContent>
@@ -176,8 +184,8 @@ export default function MaintenancePage() {
                 <input type="number" placeholder="Cost (₹)" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
               </div>
               <div className="flex gap-3 mt-3">
-                <Button onClick={handleSave} disabled={!form.vehicle_id || !form.serviceType} className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">Save</Button>
-                <Button onClick={() => setShowForm(false)} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">Cancel</Button>
+                <Button onClick={handleSave} disabled={!form.vehicle_id || !form.serviceType} className="text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">Save</Button>
+                <Button variant="outline" onClick={() => setShowForm(false)} className="text-sm font-medium px-6 py-2 rounded transition-colors">Cancel</Button>
               </div>
             </div>
           )}
@@ -205,8 +213,8 @@ export default function MaintenancePage() {
                       <TableCell className="p-3">
                         <div className="flex items-center gap-2">
                           <StatusBadge status={displayStatus} />
-                          {log.status === 'Open' && (
-                            <Button onClick={() => handleComplete(log.id)} className="text-xs bg-teal-600 hover:bg-teal-700 text-white px-2 py-1 rounded">Close</Button>
+                          {log.status === 'Open' && canWriteFleet && (
+                            <Button size="sm" onClick={() => handleComplete(log.id)} className="text-xs font-semibold">Close</Button>
                           )}
                         </div>
                       </TableCell>
@@ -277,5 +285,6 @@ export default function MaintenancePage() {
         )}
       </div>
     </Sidebar>
+    </ResourceGuard>
   );
 }

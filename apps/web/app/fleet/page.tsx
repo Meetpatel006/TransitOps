@@ -4,6 +4,9 @@ import { StatusBadge } from '@/components/status-badge';
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
 import { vehiclesService } from '@/services/vehicles';
+import { ResourceGuard } from '@/components/resource-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { canWrite } from '@/lib/rbac';
 import type { Vehicle } from '@transitops/shared';
 import {
   Table,
@@ -32,10 +35,12 @@ function formatOdometer(n: number) {
 const emptyForm = { registration_number: '', name_model: '', type: 'Van' as 'Van' | 'Truck' | 'Mini', maximum_load_capacity: '', odometer: '', acquisition_cost: '' };
 
 export default function FleetPage() {
+  const { user } = useAuth();
+  const canWriteFleet = canWrite(user?.role_name, 'fleet');
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [typeFilter, setTypeFilter] = useState('All');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -48,8 +53,8 @@ export default function FleetPage() {
   useEffect(() => { fetchVehicles(); }, []);
 
   const filtered = vehicles.filter((v) => {
-    if (typeFilter !== 'All' && v.type !== typeFilter) return false;
-    if (statusFilter !== 'All' && v.status !== statusFilter) return false;
+    if (typeFilter && typeFilter !== 'All' && v.type !== typeFilter) return false;
+    if (statusFilter && statusFilter !== 'All' && v.status !== statusFilter) return false;
     if (search && !v.registration_number.toLowerCase().includes(search.toLowerCase()) && !v.name_model.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -119,6 +124,7 @@ export default function FleetPage() {
   if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
+    <ResourceGuard resource="fleet">
     <Sidebar>
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -128,9 +134,11 @@ export default function FleetPage() {
               {vehicles.length} total · {availableCount} available
             </p>
           </div>
-          <Button onClick={openAdd} className="bg-chart-4 hover:bg-chart-4/90 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
-            + Add Vehicle
-          </Button>
+          {canWriteFleet && (
+            <Button onClick={openAdd} className="text-sm font-medium px-4 py-2 rounded transition-colors">
+              + Add Vehicle
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-4 gap-4">
@@ -158,23 +166,23 @@ export default function FleetPage() {
 
         <div className="flex items-center gap-4">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
-          <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v ?? 'All')}>
+          <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v ?? '')}>
             <SelectTrigger className="w-[140px] bg-secondary border-border h-8 text-sm">
-              <SelectValue placeholder="Type: All" />
+              <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">Type: All</SelectItem>
+              <SelectItem value="All">All</SelectItem>
               <SelectItem value="Van">Van</SelectItem>
               <SelectItem value="Truck">Truck</SelectItem>
               <SelectItem value="Mini">Mini</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'All')}>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? '')}>
             <SelectTrigger className="w-[150px] bg-secondary border-border h-8 text-sm">
-              <SelectValue placeholder="Status: All" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">Status: All</SelectItem>
+              <SelectItem value="All">All</SelectItem>
               <SelectItem value="Available">Available</SelectItem>
               <SelectItem value="On Trip">On Trip</SelectItem>
               <SelectItem value="In Shop">In Shop</SelectItem>
@@ -230,10 +238,10 @@ export default function FleetPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-4">
-              <Button onClick={handleSave} disabled={!form.registration_number || !form.name_model} className="bg-chart-4 hover:bg-chart-4/90 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">
+              <Button onClick={handleSave} disabled={!form.registration_number || !form.name_model} className="text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">
                 {editingId !== null ? 'Update' : 'Save'}
               </Button>
-              <Button onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">
+              <Button variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="text-sm font-medium px-6 py-2 rounded transition-colors">
                 Cancel
               </Button>
             </div>
@@ -267,17 +275,19 @@ export default function FleetPage() {
                     <StatusBadge status={v.status} />
                   </TableCell>
                   <TableCell className="p-3 text-right">
-                    {deleteConfirmId === v.id ? (
-                      <div className="flex items-center justify-end gap-2">
-                        <span className="text-xs text-muted-foreground">Delete?</span>
-                        <Button onClick={() => handleDelete(v.id)} className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Yes</Button>
-                        <Button onClick={() => setDeleteConfirmId(null)} className="text-xs bg-transparent border border-border px-2 py-1 rounded hover:bg-secondary">No</Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-end gap-2">
-                        <Button onClick={() => openEdit(v)} className="text-xs bg-transparent border border-border px-2 py-1 rounded hover:bg-secondary">Edit</Button>
-                        <Button onClick={() => setDeleteConfirmId(v.id)} className="text-xs bg-transparent border border-red-300 text-red-600 px-2 py-1 rounded hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950">Delete</Button>
-                      </div>
+                    {canWriteFleet && (
+                      deleteConfirmId === v.id ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <span className="text-xs text-muted-foreground">Delete?</span>
+                          <Button variant="destructive" onClick={() => handleDelete(v.id)} className="text-xs px-2 py-1 rounded">Yes</Button>
+                          <Button variant="outline" onClick={() => setDeleteConfirmId(null)} className="text-xs px-2 py-1 rounded">No</Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="outline" onClick={() => openEdit(v)} className="text-xs px-2 py-1 rounded">Edit</Button>
+                          <Button variant="destructive" onClick={() => setDeleteConfirmId(v.id)} className="text-xs px-2 py-1 rounded">Delete</Button>
+                        </div>
+                      )
                     )}
                   </TableCell>
                 </TableRow>
@@ -291,5 +301,6 @@ export default function FleetPage() {
         </p>
       </div>
     </Sidebar>
+    </ResourceGuard>
   );
 }

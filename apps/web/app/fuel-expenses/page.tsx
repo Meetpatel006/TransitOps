@@ -5,6 +5,9 @@ import Sidebar from '@/components/sidebar';
 import { fuelLogsService } from '@/services/fuel-logs';
 import { expensesService } from '@/services/expenses';
 import { vehiclesService } from '@/services/vehicles';
+import { ResourceGuard } from '@/components/resource-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { canWrite } from '@/lib/rbac';
 import type { FuelLog, Expense, Vehicle } from '@transitops/shared';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -23,6 +26,8 @@ function formatDate(d: string) {
 }
 
 export default function FuelExpensesPage() {
+  const { user } = useAuth();
+  const canWriteFuel = canWrite(user?.role_name, 'fuel_exp');
   const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -95,6 +100,7 @@ export default function FuelExpensesPage() {
   if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
+    <ResourceGuard resource="fuel_exp">
     <Sidebar>
       <div className="p-6 space-y-8">
         <div>
@@ -115,7 +121,7 @@ export default function FuelExpensesPage() {
           </div>
           <div className="border border-border rounded-lg p-4 bg-primary/5">
             <p className="text-xs font-bold tracking-wider text-muted-foreground">GRAND TOTAL</p>
-            <p className="text-2xl font-bold mt-1 text-primary">{formatCurrency(grandTotal)}</p>
+            <p className="text-2xl font-bold mt-1 text-foreground">{formatCurrency(grandTotal)}</p>
             <p className="text-xs text-muted-foreground mt-1">{fuelLogs.length + expenses.length} records</p>
           </div>
         </div>
@@ -123,8 +129,9 @@ export default function FuelExpensesPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold tracking-wider">FUEL LOGS</h2>
+            {canWriteFuel && (
             <Popover open={showFuelForm} onOpenChange={setShowFuelForm}>
-              <PopoverTrigger className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors cursor-pointer">+ Log Fuel</PopoverTrigger>
+              <PopoverTrigger className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium px-4 py-2 rounded-[8px] transition-colors cursor-pointer">+ Log Fuel</PopoverTrigger>
               <PopoverContent align="end" className="w-80 p-4">
                 <div className="space-y-4">
                   <div><h4 className="font-medium">Log Fuel</h4><p className="text-sm text-muted-foreground">Add new fuel record.</p></div>
@@ -136,18 +143,19 @@ export default function FuelExpensesPage() {
                     <input type="date" value={fuelForm.date} onChange={(e) => setFuelForm({ ...fuelForm, date: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
                     <input type="number" placeholder="Liters" value={fuelForm.liters} onChange={(e) => setFuelForm({ ...fuelForm, liters: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
                     <input type="number" placeholder="Cost per liter (₹)" value={fuelForm.costPerLiter} onChange={(e) => setFuelForm({ ...fuelForm, costPerLiter: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-                    <Button onClick={handleAddFuel} className="bg-chart-4 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
+                     <Button onClick={handleAddFuel} className="text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
+                   </div>
+                 </div>
+               </PopoverContent>
+              </Popover>
+            )}
+            </div>
 
-          <div className="border border-border rounded-lg overflow-hidden">
-            <Table className="w-full text-sm">
-              <TableHeader>
-                <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                  <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
+           <div className="border border-border rounded-lg overflow-hidden">
+             <Table className="w-full text-sm">
+               <TableHeader>
+                 <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                   <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
                   <TableHead className="text-left p-3 font-semibold">DATE</TableHead>
                   <TableHead className="text-right p-3 font-semibold">LITERS</TableHead>
                   <TableHead className="text-right p-3 font-semibold">COST/LITER</TableHead>
@@ -172,8 +180,9 @@ export default function FuelExpensesPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold tracking-wider">OTHER EXPENSES</h2>
+            {canWriteFuel && (
             <Popover open={showExpenseForm} onOpenChange={setShowExpenseForm}>
-              <PopoverTrigger className="bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded transition-colors cursor-pointer">+ Add Expense</PopoverTrigger>
+              <PopoverTrigger className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium px-4 py-2 rounded-[8px] transition-colors cursor-pointer">+ Add Expense</PopoverTrigger>
               <PopoverContent align="end" className="w-80 p-4">
                 <div className="space-y-4">
                   <div><h4 className="font-medium">Add Expense</h4><p className="text-sm text-muted-foreground">Record toll or misc expenses.</p></div>
@@ -195,19 +204,20 @@ export default function FuelExpensesPage() {
                     </Select>
                     <input type="number" placeholder="Cost (₹)" value={expenseForm.cost} onChange={(e) => setExpenseForm({ ...expenseForm, cost: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
                     <input placeholder="Notes" value={expenseForm.notes} onChange={(e) => setExpenseForm({ ...expenseForm, notes: e.target.value })} className="bg-transparent border border-border rounded px-3 py-2 text-sm" />
-                    <Button onClick={handleAddExpense} className="bg-chart-4 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
-                  </div>
-                </div>
+                     <Button onClick={handleAddExpense} className="text-sm font-medium px-4 py-2 rounded transition-colors">Save</Button>
+                   </div>
+                 </div>
               </PopoverContent>
             </Popover>
-          </div>
+            )}
+            </div>
 
-          <div className="border border-border rounded-lg overflow-hidden">
-            <Table className="w-full text-sm">
-              <TableHeader>
-                <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
-                  <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
-                  <TableHead className="text-left p-3 font-semibold">CATEGORY</TableHead>
+           <div className="border border-border rounded-lg overflow-hidden">
+             <Table className="w-full text-sm">
+               <TableHeader>
+                 <TableRow className="border-b border-border text-xs tracking-wider text-muted-foreground">
+                   <TableHead className="text-left p-3 font-semibold">VEHICLE</TableHead>
+                   <TableHead className="text-left p-3 font-semibold">CATEGORY</TableHead>
                   <TableHead className="text-left p-3 font-semibold">DATE</TableHead>
                   <TableHead className="text-right p-3 font-semibold">COST</TableHead>
                   <TableHead className="text-left p-3 font-semibold">NOTES</TableHead>
@@ -264,5 +274,6 @@ export default function FuelExpensesPage() {
         </div>
       </div>
     </Sidebar>
+    </ResourceGuard>
   );
 }

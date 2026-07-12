@@ -4,6 +4,9 @@ import { StatusBadge } from '@/components/status-badge';
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/sidebar';
 import { driversService } from '@/services/drivers';
+import { ResourceGuard } from '@/components/resource-guard';
+import { useAuth } from '@/hooks/use-auth';
+import { canWrite } from '@/lib/rbac';
 import type { Driver } from '@transitops/shared';
 import {
   Table,
@@ -34,6 +37,8 @@ function isLicenseExpired(expiry: string) {
 const emptyForm = { name: '', license_number: '', license_category: 'LMV', license_expiry_date: '', contact_number: '', safety_score: '90' };
 
 export default function DriversPage() {
+  const { user } = useAuth();
+  const canWriteDrivers = canWrite(user?.role_name, 'drivers');
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -112,6 +117,7 @@ export default function DriversPage() {
   if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
+    <ResourceGuard resource="drivers">
     <Sidebar>
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -121,9 +127,11 @@ export default function DriversPage() {
               {drivers.length} total · {availableCount} available
             </p>
           </div>
-          <Button onClick={openAdd} className="bg-chart-4 hover:bg-chart-4/90 text-white text-sm font-medium px-4 py-2 rounded transition-colors">
-            + Add Driver
-          </Button>
+          {canWriteDrivers && (
+            <Button onClick={openAdd} className="text-sm font-medium px-4 py-2 rounded transition-colors">
+              + Add Driver
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-4 gap-4">
@@ -153,10 +161,10 @@ export default function DriversPage() {
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? 'All')}>
             <SelectTrigger className="w-[150px] bg-secondary border-border h-8 text-sm">
-              <SelectValue placeholder="Status: All" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">Status: All</SelectItem>
+              <SelectItem value="All">All</SelectItem>
               <SelectItem value="Available">Available</SelectItem>
               <SelectItem value="On Trip">On Trip</SelectItem>
               <SelectItem value="Off Duty">Off Duty</SelectItem>
@@ -210,10 +218,10 @@ export default function DriversPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-4">
-              <Button onClick={handleSave} disabled={!form.name || !form.license_number} className="bg-chart-4 hover:bg-chart-4/90 text-white text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">
+              <Button onClick={handleSave} disabled={!form.name || !form.license_number} className="text-sm font-medium px-6 py-2 rounded transition-colors disabled:opacity-50">
                 {editingId !== null ? 'Update' : 'Save'}
               </Button>
-              <Button onClick={() => { setShowForm(false); setEditingId(null); }} className="bg-transparent border border-border text-sm font-medium px-6 py-2 rounded transition-colors hover:bg-secondary">
+              <Button variant="outline" onClick={() => { setShowForm(false); setEditingId(null); }} className="text-sm font-medium px-6 py-2 rounded transition-colors">
                 Cancel
               </Button>
             </div>
@@ -253,17 +261,19 @@ export default function DriversPage() {
                       <StatusBadge status={d.status} />
                     </TableCell>
                     <TableCell className="p-3 text-right">
-                      {deleteConfirmId === d.id ? (
-                        <div className="flex items-center justify-end gap-2">
-                          <span className="text-xs text-muted-foreground">Delete?</span>
-                          <Button onClick={() => handleDelete(d.id)} className="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Yes</Button>
-                          <Button onClick={() => setDeleteConfirmId(null)} className="text-xs bg-transparent border border-border px-2 py-1 rounded hover:bg-secondary">No</Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-end gap-2">
-                          <Button onClick={() => openEdit(d)} className="text-xs bg-transparent border border-border px-2 py-1 rounded hover:bg-secondary">Edit</Button>
-                          <Button onClick={() => setDeleteConfirmId(d.id)} className="text-xs bg-transparent border border-red-300 text-red-600 px-2 py-1 rounded hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950">Delete</Button>
-                        </div>
+                      {canWriteDrivers && (
+                        deleteConfirmId === d.id ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-xs text-muted-foreground">Delete?</span>
+                            <Button variant="destructive" onClick={() => handleDelete(d.id)} className="text-xs px-2 py-1 rounded">Yes</Button>
+                            <Button variant="outline" onClick={() => setDeleteConfirmId(null)} className="text-xs px-2 py-1 rounded">No</Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-2">
+                          <Button variant="outline" onClick={() => openEdit(d)} className="text-xs px-2 py-1 rounded">Edit</Button>
+                          <Button variant="destructive" onClick={() => setDeleteConfirmId(d.id)} className="text-xs px-2 py-1 rounded">Delete</Button>
+                          </div>
+                        )
                       )}
                     </TableCell>
                   </TableRow>
@@ -278,5 +288,6 @@ export default function DriversPage() {
         </p>
       </div>
     </Sidebar>
+    </ResourceGuard>
   );
 }
