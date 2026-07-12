@@ -5,11 +5,13 @@ class RegisterInput(BaseModel):
     email: EmailStr
     password: str
     name: str | None = None
+    role: str
 
 
 class LoginInput(BaseModel):
     email: EmailStr
     password: str
+    role: str
 
 
 class UserOut(BaseModel):

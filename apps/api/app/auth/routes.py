@@ -17,14 +17,14 @@ def register(body: RegisterInput, db: DBSession = Depends(get_db)):
     existing = db.scalar(select(User).where(User.email == body.email))
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered")
-    driver_role = db.scalar(select(Role).where(Role.name == "Driver"))
-    if not driver_role:
-        raise HTTPException(status_code=500, detail="Default role not found")
+    role = db.scalar(select(Role).where(Role.name == body.role))
+    if not role:
+        raise HTTPException(status_code=400, detail=f"Role '{role_name}' not found")
     user = User(
         email=body.email,
         name=body.name,
         hashed_password=hash_password(body.password),
-        role_id=driver_role.id,
+        role_id=role.id,
     )
     db.add(user)
     db.commit()
@@ -43,6 +43,8 @@ def login(body: LoginInput, db: DBSession = Depends(get_db)):
     user = db.scalar(select(User).where(User.email == body.email))
     if not user or not check_password(body.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if user.role.name != body.role:
+        raise HTTPException(status_code=403, detail="Role mismatch")
     session = Session(user_id=user.id, token=uuid4().hex)
     db.add(session)
     db.commit()
