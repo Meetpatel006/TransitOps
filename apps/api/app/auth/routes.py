@@ -19,7 +19,7 @@ def register(body: RegisterInput, db: DBSession = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Email already registered")
     role = db.scalar(select(Role).where(Role.name == body.role))
     if not role:
-        raise HTTPException(status_code=400, detail=f"Role '{role_name}' not found")
+        raise HTTPException(status_code=400, detail=f"Role '{body.role}' not found")
     user = User(
         email=body.email,
         name=body.name,
