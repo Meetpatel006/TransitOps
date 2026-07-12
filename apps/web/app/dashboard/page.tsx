@@ -36,11 +36,40 @@ export default function DashboardPage() {
   const vehicleMap = Object.fromEntries(vehicles.map(v => [v.id, v]));
   const driverMap = Object.fromEntries(drivers.map(d => [d.id, d]));
 
+  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  const vehicleTypes = ['All', ...Array.from(new Set(vehicles.map(v => v.type)))];
+  const vehicleStatuses = ['All', ...Array.from(new Set(vehicles.map(v => v.status)))];
+
+  const recentTrips = [...trips]
+    .filter(t => {
+      const v = vehicleMap[t.vehicle_id];
+      if (!v) return true;
+      if (typeFilter && typeFilter !== 'All' && v.type !== typeFilter) return false;
+      if (statusFilter && statusFilter !== 'All' && v.status !== statusFilter) return false;
+      return true;
+    })
+    .slice(-4)
+    .reverse()
+    .map(t => ({
+      trip: `TR${String(t.id).padStart(3, '0')}`,
+      vehicle: vehicleMap[t.vehicle_id]?.name_model || `Vehicle #${t.vehicle_id}`,
+      driver: driverMap[t.driver_id]?.name || `Driver #${t.driver_id}`,
+      status: t.status,
+    }));
+
+  const filteredVehicles = vehicles.filter(v => {
+    if (typeFilter && typeFilter !== 'All' && v.type !== typeFilter) return false;
+    if (statusFilter && statusFilter !== 'All' && v.status !== statusFilter) return false;
+    return true;
+  });
+
   const vehicleStatusData = [
-    { status: 'Available', count: vehicles.filter(v => v.status === 'Available').length },
-    { status: 'On Trip', count: vehicles.filter(v => v.status === 'On Trip').length },
-    { status: 'In Shop', count: vehicles.filter(v => v.status === 'In Shop').length },
-    { status: 'Retired', count: vehicles.filter(v => v.status === 'Retired').length },
+    { status: 'Available', count: filteredVehicles.filter(v => v.status === 'Available').length },
+    { status: 'On Trip', count: filteredVehicles.filter(v => v.status === 'On Trip').length },
+    { status: 'In Shop', count: filteredVehicles.filter(v => v.status === 'In Shop').length },
+    { status: 'Retired', count: filteredVehicles.filter(v => v.status === 'Retired').length },
   ];
 
   const totalVehicles = vehicles.length;
@@ -65,13 +94,6 @@ export default function DashboardPage() {
     { metric: 'Fleet Utilization', current: utilization, previous: '0%', trend: 'up', difference: `+${utilization}` },
   ];
 
-  const recentTrips = [...trips].slice(-4).reverse().map(t => ({
-    trip: `TR${String(t.id).padStart(3, '0')}`,
-    vehicle: vehicleMap[t.vehicle_id]?.name_model || `Vehicle #${t.vehicle_id}`,
-    driver: driverMap[t.driver_id]?.name || `Driver #${t.driver_id}`,
-    status: t.status,
-  }));
-
   if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
@@ -84,17 +106,17 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-4">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground">FILTERS</span>
-          <Select defaultValue="all">
+          <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v ?? '')}>
             <SelectTrigger className="w-[180px] bg-secondary border-border h-8 text-sm"><SelectValue placeholder="Vehicle Type" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Vehicle Type: All</SelectItem></SelectContent>
+            <SelectContent>
+              {vehicleTypes.map(t => (<SelectItem key={t} value={t}>{t === 'All' ? 'Vehicle Type: All' : t}</SelectItem>))}
+            </SelectContent>
           </Select>
-          <Select defaultValue="all">
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? '')}>
             <SelectTrigger className="w-[180px] bg-secondary border-border h-8 text-sm"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Status: All</SelectItem></SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[180px] bg-secondary border-border h-8 text-sm"><SelectValue placeholder="Region" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Region: All</SelectItem></SelectContent>
+            <SelectContent>
+              {vehicleStatuses.map(s => (<SelectItem key={s} value={s}>{s === 'All' ? 'Status: All' : s}</SelectItem>))}
+            </SelectContent>
           </Select>
         </div>
 

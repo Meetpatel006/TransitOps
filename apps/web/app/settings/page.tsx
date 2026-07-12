@@ -80,8 +80,8 @@ function SettingsContent() {
           </p>
         </div>
 
-        <div className="flex flex-1 overflow-hidden">
-          <nav className="w-52 shrink-0 border-r border-border p-3 space-y-0.5">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex items-center gap-1 border-b border-border px-6">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -89,8 +89,8 @@ function SettingsContent() {
                 <button
                   key={tab.id}
                   onClick={() => handleTabChange(tab.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                  className={`flex items-center gap-2 px-3 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                    isActive ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -98,7 +98,7 @@ function SettingsContent() {
                 </button>
               );
             })}
-          </nav>
+          </div>
 
           <div className="flex-1 overflow-y-auto p-6">
             {activeTab === 'general' && (
@@ -137,7 +137,7 @@ function SettingsContent() {
                     </div>
                   </div>
                 </div>
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-semibold">Save changes</Button>
+                <Button className="font-semibold">Save changes</Button>
               </div>
             )}
 
@@ -210,7 +210,7 @@ function SettingsContent() {
                   </div>
                 </div>
 
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-semibold">Update profile</Button>
+                <Button className="font-semibold">Update profile</Button>
 
                 <div className="border-t border-border pt-6 space-y-4">
                   <div>
@@ -230,7 +230,7 @@ function SettingsContent() {
                         key={opt.value}
                         onClick={() => setTheme(opt.value)}
                         className={`flex-1 py-6 rounded-lg border text-sm font-medium transition-colors ${
-                          theme === opt.value ? 'border-teal-600 bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-400' : 'border-border hover:bg-accent/50'
+                          theme === opt.value ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-accent/50'
                         }`}
                       >
                         {opt.label}

@@ -50,7 +50,7 @@ export default function FleetStatsCards({
                 {item.metric}
               </CardTitle>
               <div className="mt-1 flex items-baseline gap-2 md:block lg:flex lg:flex-wrap">
-                <div className="flex items-baseline font-semibold text-xl text-primary tabular-nums">
+                <div className="flex items-baseline font-semibold text-xl text-foreground tabular-nums">
                   {item.current}
                   <span className="ml-1.5 font-medium text-muted-foreground text-xs tabular-nums">
                     from {item.previous}
