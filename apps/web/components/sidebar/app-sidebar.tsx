@@ -84,9 +84,10 @@ const navItems: SidebarData['navMain'] = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
-  const visibleNav = navItems.filter(
-    (item) => !RESOURCE_FOR_NAV[item.id] || canView(user?.role_name, RESOURCE_FOR_NAV[item.id]),
-  );
+  const visibleNav = navItems.filter((item) => {
+    if (item.id === 'dashboard' && user?.role_name !== 'Admin') return false;
+    return !RESOURCE_FOR_NAV[item.id] || canView(user?.role_name, RESOURCE_FOR_NAV[item.id]);
+  });
 
   const data: SidebarData = {
     user: {

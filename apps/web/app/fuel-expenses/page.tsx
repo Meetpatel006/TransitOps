@@ -37,7 +37,11 @@ export default function FuelExpensesPage() {
   const [fuelForm, setFuelForm] = useState({ vehicle_id: '', date: '', liters: '', costPerLiter: '' });
   const [expenseForm, setExpenseForm] = useState({ vehicle_id: '', category: '', cost: '', notes: '' });
 
-  const fetchAll = () => Promise.all([fuelLogsService.list(), expensesService.list(), vehiclesService.list()])
+  const fetchAll = () => Promise.all([
+    fuelLogsService.list().catch(() => []), 
+    expensesService.list().catch(() => []), 
+    vehiclesService.list().catch(() => [])
+  ])
     .then(([f, e, v]) => { setFuelLogs(f); setExpenses(e); setVehicles(v); })
     .catch(console.error)
     .finally(() => setLoading(false));

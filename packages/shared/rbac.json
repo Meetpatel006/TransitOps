@@ -7,6 +7,6 @@
     "Dispatcher": { "fleet": "read", "drivers": "none", "trips": "full", "fuel_exp": "none", "analytics": "none" },
     "Safety Officer": { "fleet": "none", "drivers": "full", "trips": "read", "fuel_exp": "none", "analytics": "none" },
     "Financial Analyst": { "fleet": "read", "drivers": "none", "trips": "none", "fuel_exp": "full", "analytics": "full" },
-    "Driver": { "fleet": "none", "drivers": "none", "trips": "none", "fuel_exp": "none", "analytics": "none" }
+    "Driver": { "fleet": "read", "drivers": "read", "trips": "read", "fuel_exp": "none", "analytics": "none" }
   }
 }

@@ -36,7 +36,11 @@ export default function TripsPage() {
   const [completeForm, setCompleteForm] = useState({ final_odometer: '', fuel_consumed: '' });
   const [completingId, setCompletingId] = useState<number | null>(null);
 
-  const fetchAll = () => Promise.all([tripsService.list(), vehiclesService.list(), driversService.list()])
+  const fetchAll = () => Promise.all([
+    tripsService.list().catch(() => []),
+    vehiclesService.list().catch(() => []),
+    driversService.list().catch(() => [])
+  ])
     .then(([t, v, d]) => { setTrips(t); setVehicles(v); setDrivers(d); })
     .catch(console.error)
     .finally(() => setLoading(false));

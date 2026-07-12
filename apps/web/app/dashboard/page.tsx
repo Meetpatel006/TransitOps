@@ -5,6 +5,8 @@ import VehicleStatusPie from '@/components/vehicle-status-pie';
 import FleetStatsCards from '@/components/fleet-stats-cards';
 import type { FleetStatItem } from '@/components/fleet-stats-cards';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 import { vehiclesService } from '@/services/vehicles';
 import { tripsService } from '@/services/trips';
 import { driversService } from '@/services/drivers';
@@ -21,17 +23,31 @@ function pct(n: number, total: number) {
 }
 
 export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([vehiclesService.list(), tripsService.list(), driversService.list()])
+    if (!authLoading && user && user.role_name !== 'Admin') {
+      router.replace('/settings');
+    }
+  }, [authLoading, user, router]);
+
+  useEffect(() => {
+    if (authLoading || user?.role_name !== 'Admin') return;
+    Promise.all([
+      vehiclesService.list().catch(() => []),
+      tripsService.list().catch(() => []),
+      driversService.list().catch(() => [])
+    ])
       .then(([v, t, d]) => { setVehicles(v); setTrips(t); setDrivers(d); })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [authLoading, user]);
 
   const vehicleMap = Object.fromEntries(vehicles.map(v => [v.id, v]));
   const driverMap = Object.fromEntries(drivers.map(d => [d.id, d]));
@@ -94,7 +110,7 @@ export default function DashboardPage() {
     { metric: 'Fleet Utilization', current: utilization, previous: '0%', trend: 'up', difference: `+${utilization}` },
   ];
 
-  if (loading) return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
+  if (authLoading || loading || user?.role_name !== 'Admin') return <Sidebar><div className="p-6 text-muted-foreground">Loading...</div></Sidebar>;
 
   return (
     <Sidebar>

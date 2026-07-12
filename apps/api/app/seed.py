@@ -1,3 +1,4 @@
+import random
 import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -11,66 +12,173 @@ from app.auth.service import hash_password
 
 ROLES = ["Admin", "Fleet Manager", "Dispatcher", "Driver", "Safety Officer", "Financial Analyst"]
 
-USERS = [
-    {"email": "admin@transitops.com", "name": "Alice Admin", "role": "Admin", "password": "admin123"},
-    {"email": "fleet@transitops.com", "name": "Frank Fleet", "role": "Fleet Manager", "password": "fleet123"},
-    {"email": "driver@transitops.com", "name": "Alex", "role": "Driver", "password": "driver123"},
-    {"email": "driver2@transitops.com", "name": "Priya", "role": "Driver", "password": "driver123"},
-    {"email": "driver3@transitops.com", "name": "Suresh", "role": "Driver", "password": "driver123"},
-    {"email": "safety@transitops.com", "name": "Sam Safety", "role": "Safety Officer", "password": "safety123"},
-    {"email": "finance@transitops.com", "name": "Finn Finance", "role": "Financial Analyst", "password": "finance123"},
-    {"email": "manager2@transitops.com", "name": "Grace Logistics", "role": "Fleet Manager", "password": "fleet123"},
-    {"email": "dispatch@transitops.com", "name": "Dee Dispatcher", "role": "Dispatcher", "password": "dispatch123"},
-]
+FIRST_NAMES = ["Aarav", "Vivaan", "Aditya", "Vihaan", "Arjun", "Sai", "Reyansh", "Krishna", "Ishaan", "Kabir",
+               "Ananya", "Diya", "Saanvi", "Aadhya", "Pari", "Anika", "Navya", "Kiara", "Myra", "Riya",
+               "Frank", "Grace", "Sam", "Dee", "Alice", "Finn", "Priya", "Suresh", "John", "Alex"]
+LAST_NAMES = ["Patel", "Shah", "Mehta", "Desai", "Joshi", "Verma", "Sharma", "Gupta", "Kumar", "Singh",
+              "Reddy", "Nair", "Rao", "Iyer", "Bose", "Das", "Khan", "Malik", "Roy", "Chopra"]
 
-VEHICLES = [
-    {"registration_number": "GJ01AB4521", "name_model": "VAN-05", "type": "Van", "maximum_load_capacity": 500, "odometer": 74000, "acquisition_cost": 620000, "status": "Available"},
-    {"registration_number": "GJ01AB9981", "name_model": "TRUCK-12", "type": "Truck", "maximum_load_capacity": 5000, "odometer": 182000, "acquisition_cost": 2450000, "status": "On Trip"},
-    {"registration_number": "GJ01AB1120", "name_model": "MINI-08", "type": "Mini", "maximum_load_capacity": 1000, "odometer": 66000, "acquisition_cost": 410000, "status": "In Shop"},
-    {"registration_number": "GJ01AB0008", "name_model": "VAN-09", "type": "Van", "maximum_load_capacity": 750, "odometer": 241900, "acquisition_cost": 590000, "status": "Retired"},
-]
+CITIES = ["Gandhinagar Depot", "Ahmedabad Hub", "Vatva Industrial Area", "Sanand Warehouse", "Mansa",
+          "Kalol Depot", "Naroda", "Vastral", "SG Highway", "Airport Cargo", "Ashram Road", "Satellite Depot",
+          "Maninagar", "Bopal", "Chandkheda", "Nikol", "Thaltej", "Bodakdev"]
 
-DRIVERS = [
-    {"name": "Alex", "license_number": "DL-88213", "license_category": "LMV", "license_expiry_date": date(2028, 12, 1), "contact_number": "98765xxxxx", "safety_score": 96, "status": "Available"},
-    {"name": "John", "license_number": "DL-44120", "license_category": "HMV", "license_expiry_date": date(2025, 3, 1), "contact_number": "98220xxxxx", "safety_score": 91, "status": "Suspended"},
-    {"name": "Priya", "license_number": "DL-77031", "license_category": "LMV", "license_expiry_date": date(2027, 8, 1), "contact_number": "99110xxxxx", "safety_score": 99, "status": "On Trip"},
-    {"name": "Suresh", "license_number": "DL-90045", "license_category": "HMV", "license_expiry_date": date(2027, 1, 1), "contact_number": "97440xxxxx", "safety_score": 88, "status": "Off Duty"},
-]
+VEHICLE_TYPES = ["Van", "Truck", "Mini", "Tempo", "Bus"]
+VEHICLE_MODELS = ["VAN", "TRUCK", "MINI", "TEMPO", "BUS"]
+VEHICLE_STATUSES = ["Available", "On Trip", "In Shop", "Retired"]
+LICENSE_CATEGORIES = ["LMV", "HMV", "MCWG", "LMV-TR"]
+DRIVER_STATUSES = ["Available", "On Trip", "Off Duty", "Suspended"]
+TRIP_STATUSES = ["Draft", "Dispatched", "Completed", "Cancelled"]
+MAINT_TITLES = ["Oil Change", "Engine Repair", "Tyre Replace", "Brake Service", "AC Service",
+                "General Service", "Battery Replace", "Clutch Repair", "Wheel Alignment"]
+EXPENSE_CATEGORIES = ["Toll", "Other", "Fuel", "Loading", "Parking", "Insurance"]
 
-TRIPS = [
-    {"source": "Gandhinagar Depot", "destination": "Ahmedabad Hub", "vehicle_idx": 0, "driver_idx": 0, "cargo_weight": 450, "planned_distance": 38, "status": "Dispatched"},
-    {"source": "Vatva Industrial Area", "destination": "Sanand Warehouse", "vehicle_idx": 1, "driver_idx": 2, "cargo_weight": 2000, "planned_distance": 25, "status": "Draft"},
-    {"source": "Mansa", "destination": "Kalol Depot", "vehicle_idx": 0, "driver_idx": 3, "cargo_weight": 300, "planned_distance": 55, "status": "Completed", "final_odometer": 74200, "fuel_consumed": 12.5},
-    {"source": "Naroda", "destination": "Vastral", "vehicle_idx": 1, "driver_idx": 0, "cargo_weight": 1800, "planned_distance": 15, "status": "Cancelled"},
-    {"source": "SG Highway", "destination": "Airport Cargo", "vehicle_idx": 0, "driver_idx": 2, "cargo_weight": 350, "planned_distance": 12, "status": "Dispatched"},
-    {"source": "Ashram Road", "destination": "Satellite Depot", "vehicle_idx": 0, "driver_idx": 0, "cargo_weight": 200, "planned_distance": 8, "status": "Completed", "final_odometer": 74050, "fuel_consumed": 4.2},
-    {"source": "Maninagar", "destination": "Vastral", "vehicle_idx": 1, "driver_idx": 2, "cargo_weight": 1500, "planned_distance": 10, "status": "Draft"},
-]
+USED_EMAILS: set[str] = set()
+USED_LICENSE: set[str] = set()
+USED_REG: set[str] = set()
 
-MAINTENANCE_LOGS = [
-    {"vehicle_idx": 0, "title": "Oil Change", "description": "Regular 10,000 km oil change", "cost": 2800, "status": "Closed", "days_ago": 7, "closed": True},
-    {"vehicle_idx": 1, "title": "Engine Repair", "description": "Check engine light diagnostic and repair", "cost": 18000, "status": "Closed", "days_ago": 6, "closed": True},
-    {"vehicle_idx": 2, "title": "Tyre Replace", "description": "Replace worn front tyres", "cost": 6200, "status": "Open", "days_ago": 6, "closed": False},
-    {"vehicle_idx": 0, "title": "Brake Service", "description": "Front brake pads replacement", "cost": 1800, "status": "Closed", "days_ago": 4, "closed": True},
-    {"vehicle_idx": 1, "title": "AC Service", "description": "AC compressor check and gas refill", "cost": 3500, "status": "Open", "days_ago": 3, "closed": False},
-    {"vehicle_idx": 3, "title": "General Service", "description": "Full vehicle inspection and servicing", "cost": 4200, "status": "Closed", "days_ago": 2, "closed": True},
-]
+# ponytail: stdlib random only, no faker dependency. Seeded for reproducibility.
+random.seed(42)
 
-FUEL_LOGS = [
-    {"vehicle_idx": 0, "liters": 42, "cost": 3150, "days_ago": 7},
-    {"vehicle_idx": 1, "liters": 110, "cost": 8400, "days_ago": 6},
-    {"vehicle_idx": 2, "liters": 28, "cost": 2050, "days_ago": 6},
-    {"vehicle_idx": 0, "liters": 38, "cost": 2831, "days_ago": 4},
-    {"vehicle_idx": 1, "liters": 95, "cost": 7315, "days_ago": 2},
-]
 
-EXPENSES = [
-    {"vehicle_idx": 0, "cost": 120, "category": "Toll", "notes": "Gandhinagar-Ahmedabad toll", "days_ago": 7},
-    {"vehicle_idx": 1, "cost": 340, "category": "Toll", "notes": "Vatva-Sanand toll", "days_ago": 6},
-    {"vehicle_idx": 1, "cost": 150, "category": "Other", "notes": "Loading charges", "days_ago": 6},
-    {"vehicle_idx": 0, "cost": 80, "category": "Toll", "notes": "Mansa-Kalol toll", "days_ago": 4},
-    {"vehicle_idx": 2, "cost": 200, "category": "Other", "notes": "Parking fees", "days_ago": 3},
-]
+def _email(first: str, last: str) -> str:
+    base = f"{first.lower()}.{last.lower()}"
+    i = 1
+    email = f"{base}@transitops.com"
+    while email in USED_EMAILS:
+        email = f"{base}{i}@transitops.com"
+        i += 1
+    USED_EMAILS.add(email)
+    return email
+
+
+def _license_number() -> str:
+    while True:
+        lic = f"DL-{random.randint(10000, 99999)}"
+        if lic not in USED_LICENSE:
+            USED_LICENSE.add(lic)
+            return lic
+
+
+def _registration() -> str:
+    while True:
+        reg = f"GJ01AB{random.randint(1000, 9999)}"
+        if reg not in USED_REG:
+            USED_REG.add(reg)
+            return reg
+
+
+def gen_users(n: int = 10) -> list[dict]:
+    users = [
+        {"email": "frank.desai@transitops.com", "name": "Frank Desai", "role": "Admin", "password": "pass5506"},
+        {"email": "krishna.gupta@transitops.com", "name": "Krishna Gupta", "role": "Fleet Manager", "password": "pass2679"},
+        {"email": "krishna.khan@transitops.com", "name": "Krishna Khan", "role": "Safety Officer", "password": "pass1434"},
+        {"email": "driver.test@transitops.com", "name": "Driver Test", "role": "Driver", "password": "pass1234"},
+    ]
+    for u in users:
+        USED_EMAILS.add(u["email"])
+        
+    for _ in range(n):
+        first = random.choice(FIRST_NAMES)
+        last = random.choice(LAST_NAMES)
+        name = f"{first} {last}"
+        role = random.choice(ROLES)
+        password = f"pass{random.randint(1000, 9999)}"
+        users.append({"email": _email(first, last), "name": name, "role": role, "password": password})
+    return users
+
+
+def gen_vehicles(n: int = 8) -> list[dict]:
+    vehicles = []
+    for i in range(n):
+        vtype = random.choice(VEHICLE_TYPES)
+        vehicles.append({
+            "registration_number": _registration(),
+            "name_model": f"{VEHICLE_MODELS[VEHICLE_TYPES.index(vtype)]}-{random.randint(1, 99):02d}",
+            "type": vtype,
+            "maximum_load_capacity": random.choice([500, 750, 1000, 1500, 2500, 5000]),
+            "odometer": random.randint(10000, 280000),
+            "acquisition_cost": random.randint(350000, 2600000),
+            "status": random.choice(VEHICLE_STATUSES),
+        })
+    return vehicles
+
+
+def gen_drivers(n: int = 10) -> list[dict]:
+    drivers = []
+    for _ in range(n):
+        first = random.choice(FIRST_NAMES)
+        last = random.choice(LAST_NAMES)
+        drivers.append({
+            "name": f"{first} {last}",
+            "license_number": _license_number(),
+            "license_category": random.choice(LICENSE_CATEGORIES),
+            "license_expiry_date": date.today() + timedelta(days=random.randint(-200, 1500)),
+            "contact_number": f"9{random.randint(100000000, 999999999)}",
+            "safety_score": random.randint(70, 99),
+            "status": random.choice(DRIVER_STATUSES),
+        })
+    return drivers
+
+
+def gen_trips(n: int, vehicle_ids: list[int], driver_ids: list[int]) -> list[dict]:
+    trips = []
+    for _ in range(n):
+        source, destination = random.sample(CITIES, 2)
+        trips.append({
+            "source": source,
+            "destination": destination,
+            "vehicle_id": random.choice(vehicle_ids),
+            "driver_id": random.choice(driver_ids),
+            "cargo_weight": random.randint(100, 4000),
+            "planned_distance": random.randint(5, 120),
+            "status": random.choice(TRIP_STATUSES),
+            "final_odometer": random.randint(10000, 280000) if random.random() < 0.5 else None,
+            "fuel_consumed": round(random.uniform(3, 120), 1) if random.random() < 0.5 else None,
+        })
+    return trips
+
+
+def gen_maintenance(n: int, vehicle_ids: list[int], now: datetime) -> list[dict]:
+    logs = []
+    for _ in range(n):
+        days_ago = random.randint(1, 60)
+        closed = random.random() < 0.6
+        start = now - timedelta(days=days_ago + (5 if closed else 0))
+        logs.append({
+            "vehicle_id": random.choice(vehicle_ids),
+            "title": random.choice(MAINT_TITLES),
+            "description": "Auto-generated maintenance record",
+            "cost": random.randint(800, 25000),
+            "status": "Closed" if closed else "Open",
+            "start_date": start,
+            "end_date": start + timedelta(days=days_ago) if closed else None,
+        })
+    return logs
+
+
+def gen_fuel(n: int, vehicle_ids: list[int], now: datetime) -> list[dict]:
+    logs = []
+    for _ in range(n):
+        logs.append({
+            "vehicle_id": random.choice(vehicle_ids),
+            "liters": round(random.uniform(20, 120), 1),
+            "cost": random.randint(1500, 9000),
+            "date": (now - timedelta(days=random.randint(0, 60))).date(),
+        })
+    return logs
+
+
+def gen_expenses(n: int, vehicle_ids: list[int], now: datetime) -> list[dict]:
+    logs = []
+    for _ in range(n):
+        logs.append({
+            "vehicle_id": random.choice(vehicle_ids),
+            "cost": random.randint(50, 600),
+            "date": (now - timedelta(days=random.randint(0, 60))).date(),
+            "category": random.choice(EXPENSE_CATEGORIES),
+            "notes": "Auto-generated expense",
+        })
+    return logs
 
 
 def seed():
@@ -93,102 +201,49 @@ def seed():
 
         now = datetime.now(timezone.utc)
 
-        for u in USERS:
-            existing = db.query(User).filter(User.email == u["email"]).first()
-            if existing:
-                existing.role_id = role_map[u["role"]]
-            else:
-                db.add(User(
-                    email=u["email"],
-                    name=u["name"],
-                    role_id=role_map[u["role"]],
-                    hashed_password=hash_password(u["password"]),
-                ))
+        users = gen_users(10)
+        for u in users:
+            db.add(User(
+                email=u["email"],
+                name=u["name"],
+                role_id=role_map[u["role"]],
+                hashed_password=hash_password(u["password"]),
+            ))
         db.flush()
 
         vehicle_ids = []
-        for v in VEHICLES:
-            existing = db.query(Vehicle).filter(Vehicle.registration_number == v["registration_number"]).first()
-            if not existing:
-                existing = Vehicle(**v)
-                db.add(existing)
-                db.flush()
-            vehicle_ids.append(existing.id)
+        for v in gen_vehicles(8):
+            veh = Vehicle(**v)
+            db.add(veh)
+            db.flush()
+            vehicle_ids.append(veh.id)
 
         driver_ids = []
-        for d in DRIVERS:
-            existing = db.query(Driver).filter(Driver.license_number == d["license_number"]).first()
-            if not existing:
-                existing = Driver(**d)
-                db.add(existing)
-                db.flush()
-            driver_ids.append(existing.id)
+        for d in gen_drivers(10):
+            drv = Driver(**d)
+            db.add(drv)
+            db.flush()
+            driver_ids.append(drv.id)
 
-        for t in TRIPS:
-            existing = db.query(Trip).filter(
-                Trip.source == t["source"], Trip.destination == t["destination"], Trip.status == t["status"]
-            ).first()
-            if not existing:
-                db.add(Trip(
-                    source=t["source"],
-                    destination=t["destination"],
-                    vehicle_id=vehicle_ids[t["vehicle_idx"]],
-                    driver_id=driver_ids[t["driver_idx"]],
-                    cargo_weight=t["cargo_weight"],
-                    planned_distance=t["planned_distance"],
-                    status=t["status"],
-                    final_odometer=t.get("final_odometer"),
-                    fuel_consumed=t.get("fuel_consumed"),
-                ))
+        for t in gen_trips(20, vehicle_ids, driver_ids):
+            db.add(Trip(**t))
         db.flush()
 
-        for m in MAINTENANCE_LOGS:
-            existing = db.query(MaintenanceLog).filter(
-                MaintenanceLog.title == m["title"]
-            ).first()
-            if not existing:
-                start = now - timedelta(days=m["days_ago"] + (5 if m["closed"] else 0))
-                db.add(MaintenanceLog(
-                    vehicle_id=vehicle_ids[m["vehicle_idx"]],
-                    title=m["title"],
-                    description=m["description"],
-                    cost=m["cost"],
-                    status=m["status"],
-                    start_date=start,
-                    end_date=start + timedelta(days=m["days_ago"]) if m["closed"] else None,
-                ))
+        for m in gen_maintenance(15, vehicle_ids, now):
+            db.add(MaintenanceLog(**m))
         db.flush()
 
-        for f in FUEL_LOGS:
-            existing = db.query(FuelLog).filter(
-                FuelLog.date == (now - timedelta(days=f["days_ago"])).date(),
-                FuelLog.vehicle_id == vehicle_ids[f["vehicle_idx"]],
-            ).first()
-            if not existing:
-                db.add(FuelLog(
-                    vehicle_id=vehicle_ids[f["vehicle_idx"]],
-                    liters=f["liters"],
-                    cost=f["cost"],
-                    date=(now - timedelta(days=f["days_ago"])).date(),
-                ))
+        for f in gen_fuel(20, vehicle_ids, now):
+            db.add(FuelLog(**f))
         db.flush()
 
-        for e in EXPENSES:
-            existing = db.query(Expense).filter(
-                Expense.notes == e["notes"]
-            ).first()
-            if not existing:
-                db.add(Expense(
-                    vehicle_id=vehicle_ids[e["vehicle_idx"]],
-                    cost=e["cost"],
-                    date=(now - timedelta(days=e["days_ago"])).date(),
-                    category=e["category"],
-                    notes=e["notes"],
-                ))
+        for e in gen_expenses(20, vehicle_ids, now):
+            db.add(Expense(**e))
         db.flush()
 
         db.commit()
-        print(f"Seed complete: {len(USERS)} users, {len(VEHICLES)} vehicles, {len(DRIVERS)} drivers, {len(TRIPS)} trips, {len(MAINTENANCE_LOGS)} maintenance, {len(FUEL_LOGS)} fuel logs, {len(EXPENSES)} expenses")
+        print(f"Seed complete: {len(users)} users, {len(vehicle_ids)} vehicles, {len(driver_ids)} drivers, "
+              f"20 trips, 15 maintenance, 20 fuel logs, 20 expenses")
     finally:
         db.close()
 

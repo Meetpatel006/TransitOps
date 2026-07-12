@@ -37,7 +37,10 @@ export default function MaintenancePage() {
   const [vehicleFilter, setVehicleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const fetchAll = () => Promise.all([maintenanceService.list(), vehiclesService.list()])
+  const fetchAll = () => Promise.all([
+    maintenanceService.list().catch(() => []), 
+    vehiclesService.list().catch(() => [])
+  ])
     .then(([r, v]) => { setRecords(r); setVehicles(v); })
     .catch(console.error)
     .finally(() => setLoading(false));
