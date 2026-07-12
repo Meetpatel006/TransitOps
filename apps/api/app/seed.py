@@ -14,80 +14,73 @@ ROLES = ["Admin", "Fleet Manager", "Driver", "Safety Officer", "Financial Analys
 USERS = [
     {"email": "admin@transitops.com", "name": "Alice Admin", "role": "Admin", "password": "admin123"},
     {"email": "fleet@transitops.com", "name": "Frank Fleet", "role": "Fleet Manager", "password": "fleet123"},
-    {"email": "driver@transitops.com", "name": "Diana Driver", "role": "Driver", "password": "driver123"},
+    {"email": "driver@transitops.com", "name": "Alex", "role": "Driver", "password": "driver123"},
+    {"email": "driver2@transitops.com", "name": "Priya", "role": "Driver", "password": "driver123"},
+    {"email": "driver3@transitops.com", "name": "Suresh", "role": "Driver", "password": "driver123"},
     {"email": "safety@transitops.com", "name": "Sam Safety", "role": "Safety Officer", "password": "safety123"},
     {"email": "finance@transitops.com", "name": "Finn Finance", "role": "Financial Analyst", "password": "finance123"},
-    {"email": "driver2@transitops.com", "name": "Eve Transporter", "role": "Driver", "password": "driver123"},
-    {"email": "driver3@transitops.com", "name": "Jack Hauler", "role": "Driver", "password": "driver123"},
     {"email": "manager2@transitops.com", "name": "Grace Logistics", "role": "Fleet Manager", "password": "fleet123"},
-    {"email": "safety2@transitops.com", "name": "Hank Inspector", "role": "Safety Officer", "password": "safety123"},
-    {"email": "analyst2@transitops.com", "name": "Ivy Numbers", "role": "Financial Analyst", "password": "finance123"},
 ]
 
 VEHICLES = [
-    {"registration_number": "TR-1001", "name_model": "Volvo FH16", "type": "Truck", "maximum_load_capacity": 18000, "odometer": 45230, "acquisition_cost": 180000, "status": "Available"},
-    {"registration_number": "TR-1002", "name_model": "Scania R500", "type": "Truck", "maximum_load_capacity": 20000, "odometer": 28900, "acquisition_cost": 195000, "status": "Available"},
-    {"registration_number": "VN-2001", "name_model": "Ford Transit 350", "type": "Van", "maximum_load_capacity": 1500, "odometer": 32100, "acquisition_cost": 45000, "status": "On Trip"},
-    {"registration_number": "VN-2002", "name_model": "Mercedes Sprinter", "type": "Van", "maximum_load_capacity": 1200, "odometer": 56780, "acquisition_cost": 52000, "status": "In Shop"},
-    {"registration_number": "BS-3001", "name_model": "Toyota Coaster", "type": "Bus", "maximum_load_capacity": 3000, "odometer": 89340, "acquisition_cost": 85000, "status": "Available"},
-    {"registration_number": "TR-1003", "name_model": "DAF XF 530", "type": "Truck", "maximum_load_capacity": 22000, "odometer": 12450, "acquisition_cost": 210000, "status": "Retired"},
-    {"registration_number": "VN-2003", "name_model": "Renault Kangoo", "type": "Van", "maximum_load_capacity": 800, "odometer": 73450, "acquisition_cost": 28000, "status": "Available"},
-    {"registration_number": "TR-1004", "name_model": "MAN TGX 18.510", "type": "Truck", "maximum_load_capacity": 24000, "odometer": 6700, "acquisition_cost": 225000, "status": "Available"},
+    {"registration_number": "GJ01AB4521", "name_model": "VAN-05", "type": "Van", "maximum_load_capacity": 500, "odometer": 74000, "acquisition_cost": 620000, "status": "Available"},
+    {"registration_number": "GJ01AB9981", "name_model": "TRUCK-12", "type": "Truck", "maximum_load_capacity": 5000, "odometer": 182000, "acquisition_cost": 2450000, "status": "On Trip"},
+    {"registration_number": "GJ01AB1120", "name_model": "MINI-08", "type": "Mini", "maximum_load_capacity": 1000, "odometer": 66000, "acquisition_cost": 410000, "status": "In Shop"},
+    {"registration_number": "GJ01AB0008", "name_model": "VAN-09", "type": "Van", "maximum_load_capacity": 750, "odometer": 241900, "acquisition_cost": 590000, "status": "Retired"},
 ]
 
 DRIVERS = [
-    {"name": "Carlos Mendez", "license_number": "LIC-A001", "license_category": "C", "license_expiry_date": date(2027, 6, 15), "contact_number": "+1-555-0101", "safety_score": 92, "status": "Available"},
-    {"name": "Maria Santos", "license_number": "LIC-A002", "license_category": "C", "license_expiry_date": date(2028, 3, 22), "contact_number": "+1-555-0102", "safety_score": 88, "status": "On Trip"},
-    {"name": "Wei Chen", "license_number": "LIC-A003", "license_category": "B", "license_expiry_date": date(2026, 11, 10), "contact_number": "+1-555-0103", "safety_score": 75, "status": "Available"},
-    {"name": "Priya Sharma", "license_number": "LIC-A004", "license_category": "D", "license_expiry_date": date(2027, 9, 5), "contact_number": "+1-555-0104", "safety_score": 95, "status": "Off Duty"},
-    {"name": "John O'Brien", "license_number": "LIC-A005", "license_category": "C", "license_expiry_date": date(2025, 1, 20), "contact_number": "+1-555-0105", "safety_score": 60, "status": "Suspended"},
-    {"name": "Fatima Al-Rashid", "license_number": "LIC-A006", "license_category": "B", "license_expiry_date": date(2028, 7, 30), "contact_number": "+1-555-0106", "safety_score": 91, "status": "Available"},
-    {"name": "Kwame Asante", "license_number": "LIC-A007", "license_category": "C", "license_expiry_date": date(2029, 2, 14), "contact_number": "+1-555-0107", "safety_score": 84, "status": "Available"},
-    {"name": "Sofia Rossi", "license_number": "LIC-A008", "license_category": "D", "license_expiry_date": date(2027, 12, 1), "contact_number": "+1-555-0108", "safety_score": 79, "status": "Available"},
+    {"name": "Alex", "license_number": "DL-88213", "license_category": "LMV", "license_expiry_date": date(2028, 12, 1), "contact_number": "98765xxxxx", "safety_score": 96, "status": "Available"},
+    {"name": "John", "license_number": "DL-44120", "license_category": "HMV", "license_expiry_date": date(2025, 3, 1), "contact_number": "98220xxxxx", "safety_score": 91, "status": "Suspended"},
+    {"name": "Priya", "license_number": "DL-77031", "license_category": "LMV", "license_expiry_date": date(2027, 8, 1), "contact_number": "99110xxxxx", "safety_score": 99, "status": "On Trip"},
+    {"name": "Suresh", "license_number": "DL-90045", "license_category": "HMV", "license_expiry_date": date(2027, 1, 1), "contact_number": "97440xxxxx", "safety_score": 88, "status": "Off Duty"},
 ]
 
 TRIPS = [
-    {"source": "New York, NY", "destination": "Boston, MA", "cargo_weight": 12000, "planned_distance": 215, "status": "Draft"},
-    {"source": "Chicago, IL", "destination": "Detroit, MI", "cargo_weight": 8000, "planned_distance": 283, "status": "Dispatched"},
-    {"source": "Los Angeles, CA", "destination": "San Francisco, CA", "cargo_weight": 500, "planned_distance": 383, "status": "Completed", "final_odometer": 89720, "fuel_consumed": 42.3},
-    {"source": "Dallas, TX", "destination": "Houston, TX", "cargo_weight": 15000, "planned_distance": 239, "status": "Completed", "final_odometer": 45680, "fuel_consumed": 38.7},
-    {"source": "Miami, FL", "destination": "Orlando, FL", "cargo_weight": 2000, "planned_distance": 236, "status": "Cancelled"},
-    {"source": "Seattle, WA", "destination": "Portland, OR", "cargo_weight": 600, "planned_distance": 173, "status": "Draft"},
-    {"source": "Denver, CO", "destination": "Salt Lake City, UT", "cargo_weight": 18000, "planned_distance": 514, "status": "Cancelled"},
-    {"source": "Atlanta, GA", "destination": "Nashville, TN", "cargo_weight": 9000, "planned_distance": 249, "status": "Completed", "final_odometer": 12560, "fuel_consumed": 31.2},
+    {"source": "Gandhinagar Depot", "destination": "Ahmedabad Hub", "vehicle_idx": 0, "driver_idx": 0, "cargo_weight": 450, "planned_distance": 38, "status": "Dispatched"},
+    {"source": "Vatva Industrial Area", "destination": "Sanand Warehouse", "vehicle_idx": 1, "driver_idx": 2, "cargo_weight": 2000, "planned_distance": 25, "status": "Draft"},
+    {"source": "Mansa", "destination": "Kalol Depot", "vehicle_idx": 0, "driver_idx": 3, "cargo_weight": 300, "planned_distance": 55, "status": "Completed", "final_odometer": 74200, "fuel_consumed": 12.5},
+    {"source": "Naroda", "destination": "Vastral", "vehicle_idx": 1, "driver_idx": 0, "cargo_weight": 1800, "planned_distance": 15, "status": "Cancelled"},
+    {"source": "SG Highway", "destination": "Airport Cargo", "vehicle_idx": 0, "driver_idx": 2, "cargo_weight": 350, "planned_distance": 12, "status": "Dispatched"},
+    {"source": "Ashram Road", "destination": "Satellite Depot", "vehicle_idx": 0, "driver_idx": 0, "cargo_weight": 200, "planned_distance": 8, "status": "Completed", "final_odometer": 74050, "fuel_consumed": 4.2},
+    {"source": "Maninagar", "destination": "Vastral", "vehicle_idx": 1, "driver_idx": 2, "cargo_weight": 1500, "planned_distance": 10, "status": "Draft"},
 ]
 
 MAINTENANCE_LOGS = [
-    {"title": "Oil change", "description": "Regular 10,000 km oil change", "status": "Closed", "days_ago": 30, "closed": True},
-    {"title": "Brake inspection", "description": "Front brake pads replacement", "status": "Closed", "days_ago": 15, "closed": True},
-    {"title": "Engine tune-up", "description": "Check engine light diagnostic and repair", "status": "Open", "days_ago": 2, "closed": False},
-    {"title": "Tire rotation", "description": "Rotate and balance all four tires", "status": "Open", "days_ago": 0, "closed": False},
+    {"vehicle_idx": 0, "title": "Oil Change", "description": "Regular 10,000 km oil change", "cost": 2800, "status": "Closed", "days_ago": 7, "closed": True},
+    {"vehicle_idx": 1, "title": "Engine Repair", "description": "Check engine light diagnostic and repair", "cost": 18000, "status": "Closed", "days_ago": 6, "closed": True},
+    {"vehicle_idx": 2, "title": "Tyre Replace", "description": "Replace worn front tyres", "cost": 6200, "status": "Open", "days_ago": 6, "closed": False},
+    {"vehicle_idx": 0, "title": "Brake Service", "description": "Front brake pads replacement", "cost": 1800, "status": "Closed", "days_ago": 4, "closed": True},
+    {"vehicle_idx": 1, "title": "AC Service", "description": "AC compressor check and gas refill", "cost": 3500, "status": "Open", "days_ago": 3, "closed": False},
+    {"vehicle_idx": 3, "title": "General Service", "description": "Full vehicle inspection and servicing", "cost": 4200, "status": "Closed", "days_ago": 2, "closed": True},
 ]
 
 FUEL_LOGS = [
-    {"liters": 120, "cost": 216.00, "days_ago": 1},
-    {"liters": 95, "cost": 171.00, "days_ago": 3},
-    {"liters": 140, "cost": 252.00, "days_ago": 5},
-    {"liters": 80, "cost": 144.00, "days_ago": 7},
-    {"liters": 110, "cost": 198.00, "days_ago": 10},
-    {"liters": 130, "cost": 234.00, "days_ago": 14},
+    {"vehicle_idx": 0, "liters": 42, "cost": 3150, "days_ago": 7},
+    {"vehicle_idx": 1, "liters": 110, "cost": 8400, "days_ago": 6},
+    {"vehicle_idx": 2, "liters": 28, "cost": 2050, "days_ago": 6},
+    {"vehicle_idx": 0, "liters": 38, "cost": 2831, "days_ago": 4},
+    {"vehicle_idx": 1, "liters": 95, "cost": 7315, "days_ago": 2},
 ]
 
 EXPENSES = [
-    {"cost": 450.00, "category": "Repairs", "notes": "Windshield replacement", "days_ago": 2},
-    {"cost": 120.00, "category": "Tolls", "notes": "NJT Turnpike tolls", "days_ago": 4},
-    {"cost": 85.00, "category": "Cleaning", "notes": "Interior deep clean", "days_ago": 6},
-    {"cost": 600.00, "category": "Insurance", "notes": "Monthly premium", "days_ago": 12},
-    {"cost": 200.00, "category": "Permits", "notes": "Annual operating permit", "days_ago": 20},
-    {"cost": 350.00, "category": "Repairs", "notes": "AC compressor fix", "days_ago": 8},
-    {"cost": 75.00, "category": "Supplies", "notes": "Tie-down straps", "days_ago": 3},
-    {"cost": 150.00, "category": "Parking", "notes": "Lot fees - Chicago terminal", "days_ago": 1},
+    {"vehicle_idx": 0, "cost": 120, "category": "Toll", "notes": "Gandhinagar-Ahmedabad toll", "days_ago": 7},
+    {"vehicle_idx": 1, "cost": 340, "category": "Toll", "notes": "Vatva-Sanand toll", "days_ago": 6},
+    {"vehicle_idx": 1, "cost": 150, "category": "Other", "notes": "Loading charges", "days_ago": 6},
+    {"vehicle_idx": 0, "cost": 80, "category": "Toll", "notes": "Mansa-Kalol toll", "days_ago": 4},
+    {"vehicle_idx": 2, "cost": 200, "category": "Other", "notes": "Parking fees", "days_ago": 3},
 ]
 
 
 def seed():
     db = SessionLocal()
     try:
+        # ponytail: clear child tables first to avoid FK violations, then parents
+        for model in (FuelLog, Expense, MaintenanceLog, Trip, Driver, Vehicle):
+            db.query(model).delete()
+        db.query(User).delete()
+        db.flush()
+
         role_map = {}
         for name in ROLES:
             role = db.query(Role).filter(Role.name == name).first()
@@ -112,93 +105,85 @@ def seed():
                 ))
         db.flush()
 
-        vehicle_map = {}
+        vehicle_ids = []
         for v in VEHICLES:
             existing = db.query(Vehicle).filter(Vehicle.registration_number == v["registration_number"]).first()
             if not existing:
                 existing = Vehicle(**v)
                 db.add(existing)
                 db.flush()
-            vehicle_map[existing.registration_number] = existing.id
+            vehicle_ids.append(existing.id)
 
-        driver_map = {}
+        driver_ids = []
         for d in DRIVERS:
             existing = db.query(Driver).filter(Driver.license_number == d["license_number"]).first()
             if not existing:
                 existing = Driver(**d)
                 db.add(existing)
                 db.flush()
-            driver_map[existing.license_number] = existing.id
+            driver_ids.append(existing.id)
 
-        trip_vehicles = list(vehicle_map.values())
-        trip_drivers = list(driver_map.values())
-        for i, t in enumerate(TRIPS):
+        for t in TRIPS:
             existing = db.query(Trip).filter(
                 Trip.source == t["source"], Trip.destination == t["destination"], Trip.status == t["status"]
             ).first()
             if not existing:
-                existing = Trip(
+                db.add(Trip(
                     source=t["source"],
                     destination=t["destination"],
-                    vehicle_id=trip_vehicles[i % len(trip_vehicles)],
-                    driver_id=trip_drivers[i % len(trip_drivers)],
+                    vehicle_id=vehicle_ids[t["vehicle_idx"]],
+                    driver_id=driver_ids[t["driver_idx"]],
                     cargo_weight=t["cargo_weight"],
                     planned_distance=t["planned_distance"],
                     status=t["status"],
                     final_odometer=t.get("final_odometer"),
                     fuel_consumed=t.get("fuel_consumed"),
-                )
-                db.add(existing)
+                ))
         db.flush()
 
-        maint_vehicles = list(vehicle_map.values())
-        for i, m in enumerate(MAINTENANCE_LOGS):
+        for m in MAINTENANCE_LOGS:
             existing = db.query(MaintenanceLog).filter(
                 MaintenanceLog.title == m["title"]
             ).first()
             if not existing:
                 start = now - timedelta(days=m["days_ago"] + (5 if m["closed"] else 0))
-                existing = MaintenanceLog(
-                    vehicle_id=maint_vehicles[i % len(maint_vehicles)],
+                db.add(MaintenanceLog(
+                    vehicle_id=vehicle_ids[m["vehicle_idx"]],
                     title=m["title"],
                     description=m["description"],
+                    cost=m["cost"],
                     status=m["status"],
                     start_date=start,
                     end_date=start + timedelta(days=m["days_ago"]) if m["closed"] else None,
-                )
-                db.add(existing)
+                ))
         db.flush()
 
-        fuel_vehicles = list(vehicle_map.values())
-        for i, f in enumerate(FUEL_LOGS):
+        for f in FUEL_LOGS:
             existing = db.query(FuelLog).filter(
                 FuelLog.date == (now - timedelta(days=f["days_ago"])).date(),
-                FuelLog.vehicle_id == fuel_vehicles[i % len(fuel_vehicles)],
+                FuelLog.vehicle_id == vehicle_ids[f["vehicle_idx"]],
             ).first()
             if not existing:
-                existing = FuelLog(
-                    vehicle_id=fuel_vehicles[i % len(fuel_vehicles)],
+                db.add(FuelLog(
+                    vehicle_id=vehicle_ids[f["vehicle_idx"]],
                     liters=f["liters"],
                     cost=f["cost"],
                     date=(now - timedelta(days=f["days_ago"])).date(),
-                )
-                db.add(existing)
+                ))
         db.flush()
 
-        expense_vehicles = list(vehicle_map.values())
-        for i, e in enumerate(EXPENSES):
+        for e in EXPENSES:
             existing = db.query(Expense).filter(
                 Expense.notes == e["notes"]
             ).first()
             if not existing:
-                existing = Expense(
-                    vehicle_id=expense_vehicles[i % len(expense_vehicles)],
+                db.add(Expense(
+                    vehicle_id=vehicle_ids[e["vehicle_idx"]],
                     cost=e["cost"],
                     date=(now - timedelta(days=e["days_ago"])).date(),
                     category=e["category"],
                     notes=e["notes"],
-                )
-                db.add(existing)
+                ))
         db.flush()
 
         db.commit()

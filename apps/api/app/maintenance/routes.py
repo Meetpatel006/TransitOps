@@ -45,7 +45,7 @@ def create_maintenance(
     vehicle = db.get(Vehicle, body.vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
-    log = MaintenanceLog(vehicle_id=body.vehicle_id, title=body.title, description=body.description)
+    log = MaintenanceLog(vehicle_id=body.vehicle_id, title=body.title, description=body.description, cost=body.cost)
     db.add(log)
     vehicle.status = "In Shop"
     db.commit()

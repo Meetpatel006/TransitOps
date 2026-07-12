@@ -68,6 +68,7 @@ class MaintenanceLog(Base):
     vehicle_id: Mapped[int] = mapped_column(ForeignKey("vehicles.id"), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    cost: Mapped[float] = mapped_column(Float, default=0.0)
     status: Mapped[str] = mapped_column(String(20), default="Open")
     start_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

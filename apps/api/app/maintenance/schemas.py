@@ -8,6 +8,7 @@ class MaintenanceOut(BaseModel):
     vehicle_id: int
     title: str
     description: str | None = None
+    cost: float = 0.0
     status: str
     start_date: datetime
     end_date: datetime | None = None
@@ -17,9 +18,11 @@ class MaintenanceCreate(BaseModel):
     vehicle_id: int
     title: str
     description: str | None = None
+    cost: float = 0.0
 
 
 class MaintenanceUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
+    cost: float | None = None
     status: str | None = None
